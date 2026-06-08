@@ -23,6 +23,26 @@
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
+                    <label for="nomor_urut" class="block text-sm font-medium text-gray-700 mb-2">
+                        Unit Number (No)
+                    </label>
+                    <div class="relative">
+                        <input type="number"
+                               id="nomor_urut"
+                               name="nomor_urut"
+                               min="1"
+                               value="{{ old('nomor_urut', $nextNomorUrut) }}"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono"
+                               placeholder="{{ $nextNomorUrut }}">
+                        <i class="bi bi-123 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                    <p class="mt-2 text-xs text-gray-500">Otomatis terisi nomor terakhir + 1 ({{ $nextNomorUrut }}). Bisa diubah manual atau dikosongkan untuk otomatis.</p>
+                    @error('nomor_urut')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
                     <label for="kode_unit" class="block text-sm font-medium text-gray-700 mb-2">
                         Unit Code <span class="text-red-500">*</span>
                     </label>

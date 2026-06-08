@@ -11,6 +11,7 @@ class UnitImportTemplateExport implements FromArray, WithHeadings
     {
         return [
             [
+                10,
                 'UNIT001',
                 'Unit Contoh',
                 'Electrical',
@@ -30,6 +31,7 @@ class UnitImportTemplateExport implements FromArray, WithHeadings
     public function headings(): array
     {
         return [
+            'nomor_urut',
             'kode_unit',
             'nama_unit',
             'unit_category',

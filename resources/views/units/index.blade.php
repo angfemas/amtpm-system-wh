@@ -48,7 +48,7 @@
 
     <div id="unit-import-status-box" class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4 text-sm text-gray-600">
         <div id="unit-import-info">
-            <p><strong>Import format:</strong> gunakan header <code>kode_unit</code>, <code>nama_unit</code>, <code>unit_category</code>, <code>warehouse_area</code>, <code>jenis_maintenance</code>, <code>tanggal_maintenance_terakhir</code>, <code>interval_hari</code>, <code>kilometer</code>, <code>hour_meter</code>, <code>status</code>, <code>is_active</code>, <code>keterangan</code>.</p>
+            <p><strong>Import format:</strong> gunakan header <code>nomor_urut</code>, <code>kode_unit</code>, <code>nama_unit</code>, <code>unit_category</code>, <code>warehouse_area</code>, <code>jenis_maintenance</code>, <code>tanggal_maintenance_terakhir</code>, <code>interval_hari</code>, <code>kilometer</code>, <code>hour_meter</code>, <code>status</code>, <code>is_active</code>, <code>keterangan</code>.</p>
             <p class="mt-2 text-xs text-gray-500">Klik tombol <strong>Template</strong> untuk mengunduh file contoh format Excel yang dapat digunakan untuk import. Untuk file XLSX diperlukan ekstensi PHP <code>php_zip</code>.</p>
         </div>
         <div id="unit-import-feedback" class="mt-4 hidden rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700"></div>
@@ -142,6 +142,7 @@
             <table class="w-full">
                 <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Code</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
@@ -156,6 +157,9 @@
                     @forelse($units as $unit)
                         <tr class="hover:bg-gray-50 transition-colors" data-unit-id="{{ $unit->id }}">
                             <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="font-mono text-sm font-semibold text-gray-900">{{ $unit->nomor_urut ?? '-' }}</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="font-mono text-sm font-semibold text-gray-900">{{ $unit->kode_unit_formatted }}</span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
@@ -169,7 +173,7 @@
                                     </div>
                                     <div>
                                         <div class="text-sm font-medium text-gray-900">{{ $unit->nama_unit }}</div>
-                                        <div class="text-xs text-gray-500">{{ $unit->jenis_maintenance_display }}</div>
+                                        <div class="text-xs text-gray-500">{{ $unit->nomor_display }}</div>
                                     </div>
                                 </div>
                             </td>
@@ -239,7 +243,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-6 py-12 text-center">
+                            <td colspan="9" class="px-6 py-12 text-center">
                                 <div class="text-gray-500">
                                     <i class="bi bi-inbox text-4xl mb-4 block"></i>
                                     <p class="text-lg font-medium">No units found</p>

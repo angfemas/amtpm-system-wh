@@ -26,6 +26,7 @@ class UpdateUnitRequest extends FormRequest
         $unitId = $this->route('unit')?->id ?? $this->unit?->id ?? $this->input('id');
         
         return [
+            'nomor_urut' => ['nullable', 'integer', 'min:1'],
             'kode_unit' => ['required', 'string', 'max:50', 'unique:units,kode_unit,' . $unitId],
             'nama_unit' => ['required', 'string', 'max:255'],
             'unit_category_id' => ['required', 'exists:unit_categories,id'],
@@ -49,6 +50,8 @@ class UpdateUnitRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'nomor_urut.integer' => 'Nomor unit harus berupa angka.',
+            'nomor_urut.min' => 'Nomor unit minimal 1.',
             'kode_unit.required' => 'Kode unit wajib diisi.',
             'kode_unit.unique' => 'Kode unit sudah digunakan.',
             'nama_unit.required' => 'Nama unit wajib diisi.',

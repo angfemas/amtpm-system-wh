@@ -44,7 +44,8 @@ class UnitController extends Controller
             $query->byArea($areaId);
         }
 
-        $units = $query->orderBy('nama_unit')
+        $units = $query->orderByRaw('nomor_urut IS NULL, nomor_urut ASC')
+            ->orderBy('nama_unit')
             ->paginate(10)
             ->withQueryString();
 
@@ -62,8 +63,9 @@ class UnitController extends Controller
     {
         $categories = UnitCategory::active()->orderBy('name')->get();
         $areas = WarehouseArea::active()->orderBy('name')->get();
+        $nextNomorUrut = Unit::nextNomorUrut();
         
-        return view('units.create', compact('categories', 'areas'));
+        return view('units.create', compact('categories', 'areas', 'nextNomorUrut'));
     }
 
     /**
@@ -73,6 +75,11 @@ class UnitController extends Controller
     {
         try {
             $data = $request->validated();
+
+            // Auto-assign nomor urut (last number + 1) when left blank on manual add.
+            if (empty($data['nomor_urut'])) {
+                $data['nomor_urut'] = Unit::nextNomorUrut();
+            }
 
             if ($request->hasFile('foto_unit')) {
                 $data['foto_unit'] = $request->file('foto_unit')->store('units/photos', 'public');
@@ -182,6 +189,17 @@ class UnitController extends Controller
         $areas = WarehouseArea::active()->orderBy('name')->get();
         
         return view('units.edit', compact('unit', 'categories', 'areas'));
+    }
+
+    /**
+     * Return the next available nomor urut (last number + 1).
+     */
+    public function nextNomor(): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'next_nomor_urut' => Unit::nextNomorUrut(),
+        ]);
     }
 
     /**

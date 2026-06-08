@@ -19,6 +19,7 @@ class Unit extends Model
     protected $table = 'units';
 
     protected $fillable = [
+        'nomor_urut',
         'kode_unit',
         'nama_unit',
         'unit_category_id',
@@ -36,6 +37,7 @@ class Unit extends Model
     ];
 
     protected $casts = [
+        'nomor_urut' => 'integer',
         'tanggal_maintenance_terakhir' => 'date',
         'kilometer' => 'decimal:2',
         'hour_meter' => 'decimal:2',
@@ -48,6 +50,7 @@ class Unit extends Model
     ];
 
     protected $appends = [
+        'nomor_display',
         'maintenance_due_date',
         'is_overdue',
         'status_badge',
@@ -113,6 +116,7 @@ class Unit extends Model
         return $query->where(function (Builder $q) use ($search) {
             $q->where('kode_unit', 'like', "%{$search}%")
               ->orWhere('nama_unit', 'like', "%{$search}%")
+              ->orWhere('nomor_urut', 'like', "%{$search}%")
               ->orWhere('keterangan', 'like', "%{$search}%");
         });
     }
@@ -190,6 +194,38 @@ class Unit extends Model
     public function getKodeUnitFormattedAttribute(): string
     {
         return strtoupper($this->kode_unit);
+    }
+
+    /**
+     * Identitas penomoran kereta dengan format: no nama_unit unit_category.
+     * Contoh: "10 kereta universal MTC setting sport".
+     */
+    public function getNomorDisplayAttribute(): string
+    {
+        $parts = [];
+
+        if ($this->nomor_urut !== null) {
+            $parts[] = $this->nomor_urut;
+        }
+
+        if ($this->nama_unit) {
+            $parts[] = $this->nama_unit;
+        }
+
+        $categoryName = $this->unitCategory?->name;
+        if ($categoryName) {
+            $parts[] = $categoryName;
+        }
+
+        return trim(implode(' ', $parts));
+    }
+
+    /**
+     * Nomor urut berikutnya berdasarkan nomor terakhir yang tersimpan.
+     */
+    public static function nextNomorUrut(): int
+    {
+        return (int) static::max('nomor_urut') + 1;
     }
 
     // Activity Logging
