@@ -12,15 +12,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('units', function (Blueprint $table) {
-            $table->unsignedInteger('nomor_urut')->nullable()->after('id');
-            $table->index(['nomor_urut']);
-        });
+        // Add the column only if it doesn't already exist (e.g. added manually).
+        if (! Schema::hasColumn('units', 'nomor_urut')) {
+            Schema::table('units', function (Blueprint $table) {
+                $table->unsignedInteger('nomor_urut')->nullable()->after('id');
+                $table->index(['nomor_urut']);
+            });
+        }
 
-        // Backfill existing units with sequential numbers ordered by id
-        // so every unit already has an identity number.
-        $counter = 0;
-        foreach (DB::table('units')->orderBy('id')->pluck('id') as $id) {
+        // Backfill only units that don't have a number yet, continuing from the
+        // current max so existing numbers are preserved.
+        $counter = (int) DB::table('units')->max('nomor_urut');
+        foreach (DB::table('units')->whereNull('nomor_urut')->orderBy('id')->pluck('id') as $id) {
             $counter++;
             DB::table('units')->where('id', $id)->update(['nomor_urut' => $counter]);
         }
@@ -31,9 +34,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('units', function (Blueprint $table) {
-            $table->dropIndex(['nomor_urut']);
-            $table->dropColumn('nomor_urut');
-        });
+        if (Schema::hasColumn('units', 'nomor_urut')) {
+            Schema::table('units', function (Blueprint $table) {
+                $table->dropIndex(['nomor_urut']);
+                $table->dropColumn('nomor_urut');
+            });
+        }
     }
 };
