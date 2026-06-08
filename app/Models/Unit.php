@@ -221,6 +221,19 @@ class Unit extends Model
     }
 
     /**
+     * Identitas ringkas: no nama_unit (tanpa kategori).
+     * Dipakai di tempat yang sudah menampilkan kategori/area secara terpisah.
+     */
+    public function getNomorNamaAttribute(): string
+    {
+        if ($this->nomor_urut !== null) {
+            return trim("{$this->nomor_urut} {$this->nama_unit}");
+        }
+
+        return (string) $this->nama_unit;
+    }
+
+    /**
      * Nomor urut berikutnya berdasarkan nomor terakhir yang tersimpan.
      */
     public static function nextNomorUrut(): int

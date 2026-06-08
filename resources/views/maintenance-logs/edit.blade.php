@@ -33,9 +33,9 @@
                                 required
                                 class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
                             <option value="">Select Unit</option>
-                            @foreach(\App\Models\Unit::active()->orderBy('nama_unit')->get() as $unit)
-                                <option value="{{ $unit->id }}" {{ $maintenanceLog->unit_id == $unit->id ? 'selected' : '' }}>
-                                    {{ $unit->nama_unit }}
+                            @foreach(\App\Models\Unit::active()->orderBy('nomor_urut')->get() as $unit)
+                                <option value="{{ $unit->id }}" @selected($maintenanceLog->unit_id == $unit->id)>
+                                    {{ $unit->nomor_display }}
                                 </option>
                             @endforeach
                         </select>

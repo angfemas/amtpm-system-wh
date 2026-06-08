@@ -364,7 +364,7 @@ class UnitController extends Controller
             $query->byStatus($status);
         }
 
-        $units = $query->orderBy('nama_unit')->get();
+        $units = $query->orderBy('nomor_urut')->get();
 
         return response()->json([
             'success' => true,

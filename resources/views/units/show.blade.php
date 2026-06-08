@@ -4,7 +4,7 @@
             <div>
                 <h1 class="text-3xl font-bold text-gray-900 flex items-center">
                     <i class="bi bi-truck mr-3 text-blue-600"></i>
-                    {{ $unit->nama_unit }}
+                    {{ $unit->nomor_nama }}
                 </h1>
                 <p class="mt-1 text-sm text-gray-500">Unit details and information</p>
             </div>

@@ -33,7 +33,7 @@
                     <select id="unitFilter" name="unit_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
                         <option value="">All Units</option>
                         @foreach($units as $unit)
-                            <option value="{{ $unit->id }}" @selected(request('unit_id') == $unit->id)>{{ $unit->nama_unit }}</option>
+                            <option value="{{ $unit->id }}" @selected(request('unit_id') == $unit->id)>{{ $unit->nomor_display }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -50,7 +50,7 @@
                         <div class="flex items-start justify-between gap-4">
                             <div>
                                 <p class="text-sm text-gray-500">{{ $log->submitted_at ? $log->submitted_at->format('Y-m-d H:i') : '-' }}</p>
-                                <h2 class="mt-2 font-semibold text-gray-900">{{ $log->unit ? $log->unit->nama_unit : '-' }}</h2>
+                                <h2 class="mt-2 font-semibold text-gray-900">{{ $log->unit ? $log->unit->nomor_display : '-' }}</h2>
                                 <div class="mt-1 flex flex-wrap gap-2 items-center">
                                     <p class="text-sm text-gray-600">Operator: {{ $log->operator ? $log->operator->name : '-' }}</p>
                                     @php
@@ -112,7 +112,7 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     <div class="flex items-center gap-2">
-                                        <span>{{ $log->unit ? $log->unit->nama_unit : '-' }}</span>
+                                        <span>{{ $log->unit ? $log->unit->nomor_display : '-' }}</span>
                                         @php
                                             $tagTypes = $log->redWhiteTags->pluck('tag_type')->unique();
                                         @endphp

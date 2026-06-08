@@ -96,7 +96,7 @@
                                     <span class="font-mono text-sm font-medium text-gray-900">{{ $unit->kode_unit }}</span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ $unit->nama_unit }}</div>
+                                    <div class="text-sm font-medium text-gray-900">{{ $unit->nomor_nama }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {{ $unit->warehouseArea->name ?? 'Unknown' }}
