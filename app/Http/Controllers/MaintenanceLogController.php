@@ -237,12 +237,18 @@ class MaintenanceLogController extends Controller
     /**
      * Approve maintenance log
      */
-    public function approve(MaintenanceLog $maintenanceLog): RedirectResponse
+    public function approve(Request $request, MaintenanceLog $maintenanceLog): RedirectResponse
     {
+        if ($maintenanceLog->status !== 'submitted') {
+            return redirect()
+                ->route('maintenance-logs.index')
+                ->with('error', 'Hanya log dengan status submitted yang dapat di-approve.');
+        }
+
         $maintenanceLog->update([
             'status' => 'approved',
             'approved_at' => now(),
-            'leader_id' => auth()->id() ?? null,
+            'leader_id' => auth()->id(),
         ]);
         
         return redirect()
@@ -251,10 +257,44 @@ class MaintenanceLogController extends Controller
     }
 
     /**
+     * Reject maintenance log
+     */
+    public function reject(Request $request, MaintenanceLog $maintenanceLog): RedirectResponse
+    {
+        if ($maintenanceLog->status !== 'submitted') {
+            return redirect()
+                ->route('maintenance-logs.index')
+                ->with('error', 'Hanya log dengan status submitted yang dapat di-reject.');
+        }
+
+        $request->validate([
+            'rejection_reason' => 'required|string|max:500',
+        ]);
+
+        $maintenanceLog->update([
+            'status' => 'rejected',
+            'leader_id' => auth()->id(),
+            'catatan_kerusakan' => $maintenanceLog->catatan_kerusakan
+                ? $maintenanceLog->catatan_kerusakan . "\n\n[REJECTED] " . $request->rejection_reason
+                : '[REJECTED] ' . $request->rejection_reason,
+        ]);
+        
+        return redirect()
+            ->route('maintenance-logs.index')
+            ->with('success', 'Maintenance log berhasil ditolak.');
+    }
+
+    /**
      * Complete maintenance log
      */
-    public function complete(MaintenanceLog $maintenanceLog): RedirectResponse
+    public function complete(Request $request, MaintenanceLog $maintenanceLog): RedirectResponse
     {
+        if ($maintenanceLog->status !== 'approved') {
+            return redirect()
+                ->route('maintenance-logs.index')
+                ->with('error', 'Hanya log dengan status approved yang dapat di-complete.');
+        }
+
         $maintenanceLog->update([
             'status' => 'completed',
             'completed_at' => now(),

@@ -230,16 +230,74 @@
             <!-- Actions -->
             <div class="mt-6 flex justify-end space-x-3">
                 @if($maintenanceLog->status == 'submitted' && auth()->user()->can('maintenance.approve'))
-                    <x-industrial-button variant="success" href="{{ route('maintenance-logs.approve', $maintenanceLog) }}" icon="check">
-                        Approve
-                    </x-industrial-button>
+                    <form method="POST" action="{{ route('maintenance-logs.approve', $maintenanceLog) }}" class="inline" onsubmit="return confirm('Approve maintenance log ini?')">
+                        @csrf
+                        <button type="submit" class="inline-flex items-center px-4 py-2 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition-colors shadow-sm">
+                            <i class="bi bi-check-lg mr-2"></i> Approve
+                        </button>
+                    </form>
+                    <button type="button" onclick="openRejectModal({{ $maintenanceLog->id }})"
+                        class="inline-flex items-center px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors shadow-sm">
+                        <i class="bi bi-x-lg mr-2"></i> Reject
+                    </button>
                 @endif
                 @if($maintenanceLog->status == 'approved' && auth()->user()->can('maintenance.complete'))
-                    <x-industrial-button variant="primary" href="{{ route('maintenance-logs.complete', $maintenanceLog) }}" icon="check-circle">
-                        Complete
-                    </x-industrial-button>
+                    <form method="POST" action="{{ route('maintenance-logs.complete', $maintenanceLog) }}" class="inline" onsubmit="return confirm('Complete maintenance log ini?')">
+                        @csrf
+                        <button type="submit" class="inline-flex items-center px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors shadow-sm">
+                            <i class="bi bi-check-circle mr-2"></i> Complete
+                        </button>
+                    </form>
                 @endif
             </div>
         </div>
     </div>
+
+    <!-- Reject Modal -->
+    <div id="rejectModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <i class="bi bi-x-octagon text-red-600 mr-2"></i>
+                Reject Maintenance Log
+            </h3>
+            <form id="rejectForm" method="POST" action="">
+                @csrf
+                <div class="mb-4">
+                    <label for="rejection_reason" class="block text-sm font-medium text-gray-700 mb-2">Alasan Penolakan <span class="text-red-500">*</span></label>
+                    <textarea id="rejection_reason" name="rejection_reason" rows="3" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        placeholder="Masukkan alasan penolakan..."></textarea>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeRejectModal()" class="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 transition-colors">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-colors">
+                        Reject
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openRejectModal(logId) {
+            const modal = document.getElementById('rejectModal');
+            const form = document.getElementById('rejectForm');
+            form.action = '/maintenance-logs/reject/' + logId;
+            document.getElementById('rejection_reason').value = '';
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeRejectModal() {
+            const modal = document.getElementById('rejectModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        document.getElementById('rejectModal').addEventListener('click', function(e) {
+            if (e.target === this) closeRejectModal();
+        });
+    </script>
 </x-industrial-layout>

@@ -80,10 +80,17 @@
                                 <a href="{{ route('maintenance-logs.edit', $log) }}" class="block text-blue-600 hover:text-blue-900">Edit</a>
                             @endif
                             @if($log->status == 'submitted' && auth()->user()->can('maintenance.approve'))
-                                <a href="{{ route('maintenance-logs.approve', $log) }}" class="block text-green-600 hover:text-green-900">Approve</a>
+                                <form method="POST" action="{{ route('maintenance-logs.approve', $log) }}" class="inline" onsubmit="return confirm('Approve maintenance log ini?')">
+                                    @csrf
+                                    <button type="submit" class="text-green-600 hover:text-green-900 font-medium">Approve</button>
+                                </form>
+                                <button type="button" onclick="openRejectModal({{ $log->id }})" class="text-red-600 hover:text-red-900 font-medium">Reject</button>
                             @endif
                             @if($log->status == 'approved' && auth()->user()->can('maintenance.complete'))
-                                <a href="{{ route('maintenance-logs.complete', $log) }}" class="block text-purple-600 hover:text-purple-900">Complete</a>
+                                <form method="POST" action="{{ route('maintenance-logs.complete', $log) }}" class="inline" onsubmit="return confirm('Complete maintenance log ini?')">
+                                    @csrf
+                                    <button type="submit" class="text-purple-600 hover:text-purple-900 font-medium">Complete</button>
+                                </form>
                             @endif
                         </div>
                     </article>
@@ -139,16 +146,23 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <div class="flex space-x-2">
+                                    <div class="flex space-x-2 items-center">
                                         <a href="{{ route('maintenance-logs.show', $log) }}" class="text-indigo-600 hover:text-indigo-900">View</a>
                                         @if(auth()->user()->can('maintenance.edit'))
                                             <a href="{{ route('maintenance-logs.edit', $log) }}" class="text-blue-600 hover:text-blue-900">Edit</a>
                                         @endif
                                         @if($log->status == 'submitted' && auth()->user()->can('maintenance.approve'))
-                                            <a href="{{ route('maintenance-logs.approve', $log) }}" class="text-green-600 hover:text-green-900">Approve</a>
+                                            <form method="POST" action="{{ route('maintenance-logs.approve', $log) }}" class="inline" onsubmit="return confirm('Approve maintenance log ini?')">
+                                                @csrf
+                                                <button type="submit" class="text-green-600 hover:text-green-900 font-medium">Approve</button>
+                                            </form>
+                                            <button type="button" onclick="openRejectModal({{ $log->id }})" class="text-red-600 hover:text-red-900 font-medium">Reject</button>
                                         @endif
                                         @if($log->status == 'approved' && auth()->user()->can('maintenance.complete'))
-                                            <a href="{{ route('maintenance-logs.complete', $log) }}" class="text-purple-600 hover:text-purple-900">Complete</a>
+                                            <form method="POST" action="{{ route('maintenance-logs.complete', $log) }}" class="inline" onsubmit="return confirm('Complete maintenance log ini?')">
+                                                @csrf
+                                                <button type="submit" class="text-purple-600 hover:text-purple-900 font-medium">Complete</button>
+                                            </form>
                                         @endif
                                     </div>
                                 </td>
@@ -171,13 +185,59 @@
         </div>
     </div>
 
-    <!-- JavaScript for Filters -->
+    <!-- Reject Modal -->
+    <div id="rejectModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <i class="bi bi-x-octagon text-red-600 mr-2"></i>
+                Reject Maintenance Log
+            </h3>
+            <form id="rejectForm" method="POST" action="">
+                @csrf
+                <div class="mb-4">
+                    <label for="rejection_reason" class="block text-sm font-medium text-gray-700 mb-2">Alasan Penolakan <span class="text-red-500">*</span></label>
+                    <textarea id="rejection_reason" name="rejection_reason" rows="3" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        placeholder="Masukkan alasan penolakan..."></textarea>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeRejectModal()" class="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 transition-colors">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-colors">
+                        Reject
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript for Filters & Reject Modal -->
     <script>
         const filterForm = document.getElementById('maintenanceFilterForm');
         document.querySelectorAll('#statusFilter, #unitFilter').forEach((element) => {
             element.addEventListener('change', () => {
                 filterForm.submit();
             });
+        });
+
+        function openRejectModal(logId) {
+            const modal = document.getElementById('rejectModal');
+            const form = document.getElementById('rejectForm');
+            form.action = '/maintenance-logs/reject/' + logId;
+            document.getElementById('rejection_reason').value = '';
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeRejectModal() {
+            const modal = document.getElementById('rejectModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        document.getElementById('rejectModal').addEventListener('click', function(e) {
+            if (e.target === this) closeRejectModal();
         });
     </script>
 </x-industrial-layout>

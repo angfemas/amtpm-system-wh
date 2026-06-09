@@ -14,26 +14,33 @@ class DashboardController extends Controller
      */
     public function index(): View
     {
-        // Get statistics (optimized with single queries)
-        $stats = [
-            'totalUnits' => Unit::count(),
-            'activeUnits' => Unit::where('is_active', true)->count(),
-            'maintenanceLogs' => MaintenanceLog::count(),
-            'pendingLogs' => MaintenanceLog::where('status', 'submitted')->count(),
-            'openTags' => RedWhiteTag::where('status', 'open')->count(),
-            'overdueTags' => RedWhiteTag::where('status', 'open')
-                ->whereNotNull('target_resolution_date')
-                ->whereDate('target_resolution_date', '<', now()->toDateString())
-                ->count(),
-        ];
+        // Statistic cards
+        $totalUnits = Unit::count();
+        $activeUnits = Unit::where('is_active', true)->count();
 
-        // Get recent activities (optimized)
+        $overdueCount = Unit::active()
+            ->whereNotNull('tanggal_maintenance_terakhir')
+            ->where('interval_hari', '>', 0)
+            ->get()
+            ->filter(fn (Unit $u) => $u->is_overdue)
+            ->count();
+
+        $maintenanceTodayCount = MaintenanceLog::whereDate('submitted_at', now()->toDateString())->count();
+
+        $redTagCount = RedWhiteTag::where('tag_type', 'red_tag')->where('status', 'open')->count();
+        $whiteTagCount = RedWhiteTag::where('tag_type', 'white_tag')->where('status', 'open')->count();
+
+        $maintenanceMonthCount = MaintenanceLog::whereYear('submitted_at', now()->year)
+            ->whereMonth('submitted_at', now()->month)
+            ->count();
+
+        // Get recent activities
         $recentLogs = MaintenanceLog::with(['unit', 'operator'])
             ->orderBy('submitted_at', 'desc')
             ->limit(10)
             ->get();
 
-        // Get units by category (optimized)
+        // Get units by category
         $unitsByCategory = Unit::with('unitCategory')
             ->active()
             ->get()
@@ -46,7 +53,7 @@ class DashboardController extends Controller
             })
             ->values();
 
-        // Get maintenance by status (optimized)
+        // Maintenance by status
         $maintenanceByStatus = [
             'submitted' => MaintenanceLog::where('status', 'submitted')->count(),
             'approved' => MaintenanceLog::where('status', 'approved')->count(),
@@ -54,11 +61,42 @@ class DashboardController extends Controller
             'overdue' => MaintenanceLog::where('status', 'overdue')->count(),
         ];
 
+        // Pending approval/completion for admin & leader
+        $user = auth()->user();
+        $pendingApprovalLogs = collect();
+        $pendingCompletionLogs = collect();
+
+        if ($user && ($user->can('maintenance.approve') || $user->can('maintenance.complete'))) {
+            if ($user->can('maintenance.approve')) {
+                $pendingApprovalLogs = MaintenanceLog::with(['unit', 'operator'])
+                    ->where('status', 'submitted')
+                    ->orderBy('submitted_at', 'desc')
+                    ->limit(10)
+                    ->get();
+            }
+
+            if ($user->can('maintenance.complete')) {
+                $pendingCompletionLogs = MaintenanceLog::with(['unit', 'operator', 'leader'])
+                    ->where('status', 'approved')
+                    ->orderBy('approved_at', 'desc')
+                    ->limit(10)
+                    ->get();
+            }
+        }
+
         return view('dashboard', compact(
-            'stats',
+            'totalUnits',
+            'activeUnits',
+            'overdueCount',
+            'maintenanceTodayCount',
+            'redTagCount',
+            'whiteTagCount',
+            'maintenanceMonthCount',
             'recentLogs',
             'unitsByCategory',
-            'maintenanceByStatus'
+            'maintenanceByStatus',
+            'pendingApprovalLogs',
+            'pendingCompletionLogs'
         ));
     }
 
