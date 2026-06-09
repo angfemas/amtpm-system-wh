@@ -28,14 +28,13 @@ class QRCodeController extends Controller
      */
     public function generate(Unit $unit): Response
     {
-        $qrCode = QRCodeFacade::format('png')
+        $qrCode = QRCodeFacade::format('svg')
             ->size(300)
             ->margin(2)
             ->generate($unit->qr_code);
 
         return response($qrCode, 200, [
-            'Content-Type' => 'image/png',
-            'Content-Disposition' => 'attachment; filename="qr-'.$unit->kode_unit.'.png',
+            'Content-Type' => 'image/svg+xml',
         ]);
     }
 
@@ -44,14 +43,14 @@ class QRCodeController extends Controller
      */
     public function download(Unit $unit): Response
     {
-        $qrCode = QRCodeFacade::format('png')
+        $qrCode = QRCodeFacade::format('svg')
             ->size(300)
             ->margin(2)
             ->generate($unit->qr_code);
 
         return response($qrCode, 200, [
-            'Content-Type' => 'image/png',
-            'Content-Disposition' => 'attachment; filename="qr-'.$unit->kode_unit.'.png',
+            'Content-Type' => 'image/svg+xml',
+            'Content-Disposition' => 'attachment; filename="qr-'.$unit->kode_unit.'.svg"',
         ]);
     }
 

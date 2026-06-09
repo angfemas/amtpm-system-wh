@@ -24,9 +24,13 @@
         @forelse ($units as $unit)
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300">
             <div class="flex flex-col items-center">
-                <!-- QR Code Placeholder -->
-                <div class="w-32 h-32 bg-gray-100 rounded-lg flex items-center justify-center mb-4 border-2 border-dashed border-gray-300">
-                    <i class="bi bi-qr-code text-4xl text-gray-400"></i>
+                <!-- QR Code -->
+                <div class="w-32 h-32 bg-white rounded-lg flex items-center justify-center mb-4 border border-gray-200 p-1 [&>svg]:w-full [&>svg]:h-full">
+                    @if($unit->qr_code)
+                        {!! QrCode::size(128)->margin(0)->generate($unit->qr_code) !!}
+                    @else
+                        <i class="bi bi-qr-code text-4xl text-gray-300"></i>
+                    @endif
                 </div>
                 
                 <!-- Unit Info -->
