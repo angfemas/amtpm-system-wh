@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Unit;
 use App\Models\UnitCategory;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
-use SimpleSoftwareIO\QrCode as QRCodeFacade;
 use Illuminate\Http\Response;
+use Illuminate\View\View;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class QRCodeController extends Controller
 {
@@ -33,7 +33,12 @@ class QRCodeController extends Controller
 
         $categories = UnitCategory::active()->orderBy('name')->pluck('name', 'id');
 
-        return view('qr-codes.index', compact('units', 'categories'));
+        $qrCodes = [];
+        foreach ($units as $unit) {
+            $qrCodes[$unit->id] = $this->svg($this->qrValue($unit), 140);
+        }
+
+        return view('qr-codes.index', compact('units', 'categories', 'qrCodes'));
     }
 
     /**
@@ -41,15 +46,7 @@ class QRCodeController extends Controller
      */
     public function generate(Unit $unit): Response
     {
-        $qrCode = QRCodeFacade::format('png')
-            ->size(300)
-            ->margin(2)
-            ->generate($unit->qr_code);
-
-        return response($qrCode, 200, [
-            'Content-Type' => 'image/png',
-            'Content-Disposition' => 'attachment; filename="qr-'.$unit->kode_unit.'.png',
-        ]);
+        return $this->svgResponse($unit);
     }
 
     /**
@@ -57,15 +54,7 @@ class QRCodeController extends Controller
      */
     public function download(Unit $unit): Response
     {
-        $qrCode = QRCodeFacade::format('png')
-            ->size(300)
-            ->margin(2)
-            ->generate($unit->qr_code);
-
-        return response($qrCode, 200, [
-            'Content-Type' => 'image/png',
-            'Content-Disposition' => 'attachment; filename="qr-'.$unit->kode_unit.'.png',
-        ]);
+        return $this->svgResponse($unit);
     }
 
     /**
@@ -73,7 +62,44 @@ class QRCodeController extends Controller
      */
     public function show(Unit $unit): View
     {
-        return view('qr-codes.show', compact('unit'));
+        $qrSvg = $this->svg($this->qrValue($unit), 300);
+
+        return view('qr-codes.show', compact('unit', 'qrSvg'));
+    }
+
+    /**
+     * Resolve the value to encode in a unit's QR code.
+     */
+    private function qrValue(Unit $unit): string
+    {
+        return $unit->qr_code ?: ($unit->kode_unit ?: 'UNIT-'.$unit->id);
+    }
+
+    /**
+     * Render an SVG QR code (no imagick dependency).
+     */
+    private function svg(string $value, int $size): string
+    {
+        return QrCode::format('svg')
+            ->size($size)
+            ->margin(1)
+            ->generate($value);
+    }
+
+    /**
+     * Build a downloadable SVG QR response for a unit.
+     */
+    private function svgResponse(Unit $unit): Response
+    {
+        $qrCode = QrCode::format('svg')
+            ->size(300)
+            ->margin(2)
+            ->generate($this->qrValue($unit));
+
+        return response($qrCode, 200, [
+            'Content-Type' => 'image/svg+xml',
+            'Content-Disposition' => 'attachment; filename="qr-'.$unit->kode_unit.'.svg"',
+        ]);
     }
 
     /**
