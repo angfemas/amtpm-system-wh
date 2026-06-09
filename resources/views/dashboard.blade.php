@@ -228,6 +228,119 @@
         </div>
     </div>
 
+    <!-- Pending Approval / Completion (admin & leader only) -->
+    @if(($pendingApprovalLogs ?? collect())->count() > 0 || ($pendingCompletionLogs ?? collect())->count() > 0)
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {{-- Pending Approval --}}
+        @if(($pendingApprovalLogs ?? collect())->count() > 0)
+        <div class="bg-white rounded-xl shadow-sm border border-yellow-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-yellow-200 bg-yellow-50">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-yellow-800 flex items-center">
+                        <i class="bi bi-hourglass-split mr-2"></i>
+                        Menunggu Approval
+                    </h2>
+                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-yellow-500 text-white text-sm font-bold">{{ $pendingApprovalLogs->count() }}</span>
+                </div>
+            </div>
+            <div class="divide-y divide-gray-100">
+                @foreach($pendingApprovalLogs as $log)
+                <div class="px-6 py-4 hover:bg-gray-50 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900 truncate">{{ $log->unit->nomor_display ?? 'N/A' }}</p>
+                            <p class="text-xs text-gray-500">Operator: {{ $log->operator->name ?? 'N/A' }} &middot; {{ $log->submitted_at ? $log->submitted_at->diffForHumans() : '-' }}</p>
+                        </div>
+                        <div class="flex items-center space-x-2 ml-4">
+                            <form method="POST" action="{{ route('maintenance-logs.approve', $log) }}" class="inline" onsubmit="return confirm('Approve maintenance log ini?')">
+                                @csrf
+                                <button type="submit" class="inline-flex items-center px-3 py-1.5 rounded-lg bg-green-600 text-white text-xs font-semibold hover:bg-green-700 transition-colors shadow-sm">
+                                    <i class="bi bi-check-lg mr-1"></i> Approve
+                                </button>
+                            </form>
+                            <button type="button"
+                                onclick="openRejectModal({{ $log->id }})"
+                                class="inline-flex items-center px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-semibold hover:bg-red-700 transition-colors shadow-sm">
+                                <i class="bi bi-x-lg mr-1"></i> Reject
+                            </button>
+                            <a href="{{ route('maintenance-logs.show', $log) }}" class="inline-flex items-center px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-xs font-semibold hover:bg-gray-200 transition-colors">
+                                <i class="bi bi-eye mr-1"></i> Detail
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
+        {{-- Pending Completion --}}
+        @if(($pendingCompletionLogs ?? collect())->count() > 0)
+        <div class="bg-white rounded-xl shadow-sm border border-blue-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-blue-200 bg-blue-50">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-blue-800 flex items-center">
+                        <i class="bi bi-check2-square mr-2"></i>
+                        Menunggu Completion
+                    </h2>
+                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-500 text-white text-sm font-bold">{{ $pendingCompletionLogs->count() }}</span>
+                </div>
+            </div>
+            <div class="divide-y divide-gray-100">
+                @foreach($pendingCompletionLogs as $log)
+                <div class="px-6 py-4 hover:bg-gray-50 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900 truncate">{{ $log->unit->nomor_display ?? 'N/A' }}</p>
+                            <p class="text-xs text-gray-500">Approved by: {{ $log->leader->name ?? 'N/A' }} &middot; {{ $log->approved_at ? $log->approved_at->diffForHumans() : '-' }}</p>
+                        </div>
+                        <div class="flex items-center space-x-2 ml-4">
+                            <form method="POST" action="{{ route('maintenance-logs.complete', $log) }}" class="inline" onsubmit="return confirm('Complete maintenance log ini?')">
+                                @csrf
+                                <button type="submit" class="inline-flex items-center px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition-colors shadow-sm">
+                                    <i class="bi bi-check-circle mr-1"></i> Complete
+                                </button>
+                            </form>
+                            <a href="{{ route('maintenance-logs.show', $log) }}" class="inline-flex items-center px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-xs font-semibold hover:bg-gray-200 transition-colors">
+                                <i class="bi bi-eye mr-1"></i> Detail
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+    </div>
+    @endif
+
+    <!-- Reject Modal -->
+    <div id="rejectModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <i class="bi bi-x-octagon text-red-600 mr-2"></i>
+                Reject Maintenance Log
+            </h3>
+            <form id="rejectForm" method="POST" action="">
+                @csrf
+                <div class="mb-4">
+                    <label for="rejection_reason" class="block text-sm font-medium text-gray-700 mb-2">Alasan Penolakan <span class="text-red-500">*</span></label>
+                    <textarea id="rejection_reason" name="rejection_reason" rows="3" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        placeholder="Masukkan alasan penolakan..."></textarea>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeRejectModal()" class="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 transition-colors">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-colors">
+                        Reject
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Recent Activities -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
@@ -286,6 +399,27 @@
     </div>
 
 </x-industrial-layout>
+
+<script>
+    function openRejectModal(logId) {
+        const modal = document.getElementById('rejectModal');
+        const form = document.getElementById('rejectForm');
+        form.action = '/maintenance-logs/reject/' + logId;
+        document.getElementById('rejection_reason').value = '';
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeRejectModal() {
+        const modal = document.getElementById('rejectModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    document.getElementById('rejectModal').addEventListener('click', function(e) {
+        if (e.target === this) closeRejectModal();
+    });
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>

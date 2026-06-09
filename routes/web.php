@@ -51,8 +51,9 @@ Route::middleware('auth')->group(function () {
     
     // Maintenance Flow Routes
     Route::resource('maintenance-logs', MaintenanceLogController::class)->middleware('permission:maintenance.view|maintenance.create|maintenance.edit|maintenance.delete');
-    Route::get('maintenance-logs/approve/{maintenanceLog}', [MaintenanceLogController::class, 'approve'])->name('maintenance-logs.approve');
-    Route::get('maintenance-logs/complete/{maintenanceLog}', [MaintenanceLogController::class, 'complete'])->name('maintenance-logs.complete');
+    Route::post('maintenance-logs/approve/{maintenanceLog}', [MaintenanceLogController::class, 'approve'])->name('maintenance-logs.approve')->middleware('permission:maintenance.approve');
+    Route::post('maintenance-logs/reject/{maintenanceLog}', [MaintenanceLogController::class, 'reject'])->name('maintenance-logs.reject')->middleware('permission:maintenance.approve');
+    Route::post('maintenance-logs/complete/{maintenanceLog}', [MaintenanceLogController::class, 'complete'])->name('maintenance-logs.complete')->middleware('permission:maintenance.complete');
     Route::get('maintenance-logs/by-status/{status}', [MaintenanceLogController::class, 'getByStatus'])->name('maintenance-logs.by-status');
     Route::get('maintenance-logs/by-unit/{unit}', [MaintenanceLogController::class, 'getByUnit'])->name('maintenance-logs.by-unit');
     
