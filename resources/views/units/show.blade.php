@@ -4,7 +4,7 @@
             <div>
                 <h1 class="text-3xl font-bold text-gray-900 flex items-center">
                     <i class="bi bi-truck mr-3 text-blue-600"></i>
-                    {{ $unit->nama_unit }}
+                    {{ $unit->nomor_nama }}
                 </h1>
                 <p class="mt-1 text-sm text-gray-500">Unit details and information</p>
             </div>
@@ -32,7 +32,7 @@
                         @endif
                     </div>
                     <div class="text-white">
-                        <h2 class="text-2xl font-bold">{{ $unit->nama_unit }}</h2>
+                        <h2 class="text-2xl font-bold">{{ $unit->nomor_display }}</h2>
                         <p class="text-blue-100">{{ $unit->kode_unit_formatted }}</p>
                     </div>
                 </div>
@@ -50,6 +50,14 @@
                 <div class="space-y-4">
                     <h3 class="text-lg font-semibold text-gray-900">Basic Information</h3>
                     <div class="space-y-3">
+                        <div>
+                            <label class="text-sm font-medium text-gray-600">Unit Number (No)</label>
+                            <p class="text-gray-900 font-mono">{{ $unit->nomor_urut ?? '-' }}</p>
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium text-gray-600">Identitas Kereta</label>
+                            <p class="text-gray-900">{{ $unit->nomor_display }}</p>
+                        </div>
                         <div>
                             <label class="text-sm font-medium text-gray-600">Unit Code</label>
                             <p class="text-gray-900 font-mono">{{ $unit->kode_unit_formatted }}</p>

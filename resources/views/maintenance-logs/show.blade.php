@@ -26,7 +26,7 @@
                         <div class="space-y-3">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Unit</label>
-                                <p class="mt-1 text-sm text-gray-900">{{ $maintenanceLog->unit ? $maintenanceLog->unit->nama_unit : '-' }}</p>
+                                <p class="mt-1 text-sm text-gray-900">{{ $maintenanceLog->unit ? $maintenanceLog->unit->nomor_display : '-' }}</p>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Submitted Date</label>

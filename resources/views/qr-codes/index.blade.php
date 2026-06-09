@@ -31,7 +31,7 @@
                 
                 <!-- Unit Info -->
                 <div class="text-center mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900">{{ $unit->nama_unit }}</h3>
+                    <h3 class="text-lg font-semibold text-gray-900">{{ $unit->nomor_nama }}</h3>
                     <p class="text-sm text-gray-500">{{ $unit->unitCategory->name ?? 'Uncategorized' }}</p>
                 </div>
                 

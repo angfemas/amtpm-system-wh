@@ -24,6 +24,26 @@
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
+                    <label for="nomor_urut" class="block text-sm font-medium text-gray-700 mb-2">
+                        Unit Number (No)
+                    </label>
+                    <div class="relative">
+                        <input type="number"
+                               id="nomor_urut"
+                               name="nomor_urut"
+                               min="1"
+                               value="{{ old('nomor_urut', $unit->nomor_urut) }}"
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono"
+                               placeholder="Contoh: 10">
+                        <i class="bi bi-123 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                    <p class="mt-2 text-xs text-gray-500">Kosongkan untuk mengisi otomatis dengan nomor terakhir + 1.</p>
+                    @error('nomor_urut')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
                     <label for="kode_unit" class="block text-sm font-medium text-gray-700 mb-2">
                         Unit Code <span class="text-red-500">*</span>
                     </label>
@@ -72,7 +92,7 @@
                                 class="w-full appearance-none px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
                             <option value="">Select Category</option>
                             @foreach($categories as $category)
-                                <option value="{{ $category->id }}" {{ old('unit_category_id') == $category->id or $unit->unit_category_id == $category->id ? 'selected' : '' }}>
+                                <option value="{{ $category->id }}" @selected(old('unit_category_id', $unit->unit_category_id) == $category->id)>
                                     {{ $category->name }}
                                 </option>
                             @endforeach
@@ -96,7 +116,7 @@
                                 class="w-full appearance-none px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
                             <option value="">Select Area</option>
                             @foreach($areas as $area)
-                                <option value="{{ $area->id }}" {{ old('warehouse_area_id') == $area->id or $unit->warehouse_area_id == $area->id ? 'selected' : '' }}>
+                                <option value="{{ $area->id }}" @selected(old('warehouse_area_id', $unit->warehouse_area_id) == $area->id)>
                                     {{ $area->name }}
                                 </option>
                             @endforeach
@@ -117,9 +137,9 @@
                         <select id="jenis_maintenance" 
                                 name="jenis_maintenance" 
                                 class="w-full appearance-none px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent">
-                            <option value="preventive" {{ old('jenis_maintenance') == 'preventive' or $unit->jenis_maintenance == 'preventive' ? 'selected' : '' }}>Preventive</option>
-                            <option value="corrective" {{ old('jenis_maintenance') == 'corrective' or $unit->jenis_maintenance == 'corrective' ? 'selected' : '' }}>Corrective</option>
-                            <option value="predictive" {{ old('jenis_maintenance') == 'predictive' or $unit->jenis_maintenance == 'predictive' ? 'selected' : '' }}>Predictive</option>
+                            <option value="preventive" @selected(old('jenis_maintenance', $unit->jenis_maintenance) == 'preventive')>Preventive</option>
+                            <option value="corrective" @selected(old('jenis_maintenance', $unit->jenis_maintenance) == 'corrective')>Corrective</option>
+                            <option value="predictive" @selected(old('jenis_maintenance', $unit->jenis_maintenance) == 'predictive')>Predictive</option>
                         </select>
                         <i class="bi bi-gear absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                         <i class="bi bi-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>

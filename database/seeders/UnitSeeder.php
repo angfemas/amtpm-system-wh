@@ -39,6 +39,7 @@ class UnitSeeder extends Seeder
         // Create sample units
         $units = [
             [
+                'nomor_urut' => 1,
                 'nama_unit' => 'Excavator CAT 320',
                 'kode_unit' => 'EXC-001',
                 'unit_category_id' => 1,
@@ -49,6 +50,7 @@ class UnitSeeder extends Seeder
                 'keterangan' => 'Heavy excavator for digging operations',
             ],
             [
+                'nomor_urut' => 2,
                 'nama_unit' => 'Dump Truck Hino 500',
                 'kode_unit' => 'DT-001',
                 'unit_category_id' => 2,
@@ -59,6 +61,7 @@ class UnitSeeder extends Seeder
                 'keterangan' => 'Heavy dump truck for material transport',
             ],
             [
+                'nomor_urut' => 3,
                 'nama_unit' => 'Forklift Toyota',
                 'kode_unit' => 'FL-001',
                 'unit_category_id' => 3,
@@ -69,6 +72,7 @@ class UnitSeeder extends Seeder
                 'keterangan' => 'Electric forklift for warehouse operations',
             ],
             [
+                'nomor_urut' => 4,
                 'nama_unit' => 'Bulldozer Komatsu D155',
                 'kode_unit' => 'BD-001',
                 'unit_category_id' => 1,
@@ -79,6 +83,7 @@ class UnitSeeder extends Seeder
                 'keterangan' => 'Heavy bulldozer for earth moving',
             ],
             [
+                'nomor_urut' => 5,
                 'nama_unit' => 'Crane Tadano',
                 'kode_unit' => 'CR-001',
                 'unit_category_id' => 1,

@@ -69,9 +69,15 @@ class UnitsImport implements OnEachRow, WithHeadingRow, WithChunkReading
 
         $keterangan = $this->getValue($row, ['keterangan', 'description', 'notes']);
 
+        $nomorValue = $this->getValue($row, ['nomor_urut', 'nomor', 'no', 'no_urut']);
+        $nomorUrut = ($nomorValue !== '' && is_numeric($nomorValue) && (int) $nomorValue > 0)
+            ? (int) $nomorValue
+            : null;
+
         Unit::updateOrCreate([
             'kode_unit' => $unitCode,
         ], [
+            'nomor_urut' => $nomorUrut,
             'nama_unit' => $unitName,
             'unit_category_id' => $categoryId,
             'warehouse_area_id' => $areaId,

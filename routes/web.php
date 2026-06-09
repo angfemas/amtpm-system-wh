@@ -28,6 +28,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/unit-categories/{unitCategory}/toggle-status', [UnitCategoryController::class, 'toggleStatus'])->name('unit-categories.toggle-status');
     Route::resource('warehouse-areas', WarehouseAreaController::class)->middleware('permission:areas.view|areas.create|areas.edit|areas.delete');
     Route::post('/warehouse-areas/{warehouseArea}/toggle-status', [WarehouseAreaController::class, 'toggleStatus'])->name('warehouse-areas.toggle-status');
+    Route::get('/units/next-nomor', [UnitController::class, 'nextNomor'])->name('units.next-nomor')->middleware('permission:units.create');
     Route::resource('units', UnitController::class)->middleware('permission:units.view|units.create|units.edit|units.delete');
     Route::post('/units/import', [UnitController::class, 'import'])->name('units.import')->middleware('permission:units.create');
     Route::get('/units/import/template', [UnitController::class, 'downloadImportTemplate'])->name('units.import.template')->middleware('permission:units.create');
@@ -36,6 +37,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/units/{unit}/toggle-status', [UnitController::class, 'toggleStatus'])->name('units.toggle-status');
     
     // QR Code Routes
+    Route::get('qr-codes', [QRCodeController::class, 'index'])->name('qr-codes.index');
     Route::get('qr-codes/generate/{unit}', [QRCodeController::class, 'generate'])->name('qr-codes.generate');
     Route::get('qr-codes/download/{unit}', [QRCodeController::class, 'download'])->name('qr-codes.download');
     Route::get('qr-codes/{unit}', [QRCodeController::class, 'show'])->name('qr-codes.show');
