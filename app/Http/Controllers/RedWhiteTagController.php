@@ -30,7 +30,7 @@ class RedWhiteTagController extends Controller
      */
     public function create(): View
     {
-        $units = Unit::active()->orderBy('nama_unit')->get();
+        $units = Unit::active()->orderBy('nomor_urut')->get();
         return view('red-white-tags.create', compact('units'));
     }
 
@@ -60,7 +60,7 @@ class RedWhiteTagController extends Controller
      */
     public function edit(RedWhiteTag $redWhiteTag): View
     {
-        $units = Unit::active()->orderBy('nama_unit')->get();
+        $units = Unit::active()->orderBy('nomor_urut')->get();
         return view('red-white-tags.edit', compact('redWhiteTag', 'units'));
     }
 

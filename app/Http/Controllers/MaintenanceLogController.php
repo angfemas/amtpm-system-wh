@@ -35,7 +35,7 @@ class MaintenanceLogController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        $units = Unit::active()->orderBy('nama_unit')->get();
+        $units = Unit::active()->orderBy('nomor_urut')->get();
 
         return view('maintenance-logs.index', compact('logs', 'units'));
     }
@@ -45,7 +45,7 @@ class MaintenanceLogController extends Controller
      */
     public function create(): View
     {
-        $units = Unit::active()->orderBy('nama_unit')->get();
+        $units = Unit::active()->orderBy('nomor_urut')->get();
         return view('maintenance-logs.create', compact('units'));
     }
 
@@ -128,7 +128,7 @@ class MaintenanceLogController extends Controller
      */
     public function edit(MaintenanceLog $maintenanceLog): View
     {
-        $units = Unit::active()->orderBy('nama_unit')->get();
+        $units = Unit::active()->orderBy('nomor_urut')->get();
 
         $categoryId = $maintenanceLog->unit?->unit_category_id;
         $checklistItems = $categoryId

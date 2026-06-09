@@ -6,7 +6,7 @@
         <div class="col-md-8 offset-md-2">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">QR Code - {{ $unit->nama_unit }}</h5>
+                    <h5 class="mb-0">QR Code - {{ $unit->nomor_nama }}</h5>
                 </div>
                 <div class="card-body text-center">
                     <div class="mb-3">

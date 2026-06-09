@@ -21,7 +21,7 @@
             <div class="text-xs text-gray-600 mt-2">
                 Unit: <span class="font-semibold text-gray-900">{{ $tag->unit?->kode_unit ?? '-' }}</span>
                 <span class="text-gray-400">•</span>
-                <span>{{ $tag->unit?->nama_unit ?? '' }}</span>
+                <span>{{ $tag->unit?->nomor_nama ?? '' }}</span>
             </div>
         </div>
 

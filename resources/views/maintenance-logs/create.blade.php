@@ -41,7 +41,7 @@
                 </span>
                 @if($unit)
                     <span class="inline-flex px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-semibold">
-                        <i class="bi bi-truck mr-1"></i> {{ $unit->nama_unit }}
+                        <i class="bi bi-truck mr-1"></i> {{ $unit->nomor_display }}
                     </span>
                 @endif
             </div>
@@ -69,7 +69,7 @@
                                         <tr class="cursor-pointer hover:bg-honda-red/5 transition {{ $u->id == $unitId ? 'bg-honda-red/10 font-bold' : '' }}" data-id="{{ $u->id }}">
                                             <td class="px-4 py-3">
                                                 <div class="font-mono text-xs text-gray-500">{{ $u->kode_unit }}</div>
-                                                <div class="font-semibold text-gray-900">{{ $u->nama_unit }}</div>
+                                                <div class="font-semibold text-gray-900">{{ $u->nomor_display }}</div>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -83,7 +83,7 @@
                         <select id="unitSelectMobile" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-honda-red focus:border-transparent">
                             <option value="">-- Pilih Unit --</option>
                             @foreach($units as $u)
-                                <option value="{{ $u->id }}" @selected($u->id == $unitId)>{{ $u->kode_unit }} - {{ $u->nama_unit }}</option>
+                                <option value="{{ $u->id }}" @selected($u->id == $unitId)>{{ $u->kode_unit }} - {{ $u->nomor_display }}</option>
                             @endforeach
                         </select>
                     </div>

@@ -46,7 +46,7 @@
                     </div>
                     <div class="min-w-0">
                         <div class="text-xs uppercase tracking-wider text-gray-500 font-semibold">Unit Ditemukan</div>
-                        <h2 class="text-xl sm:text-2xl font-bold text-gray-900 truncate">{{ $unit->nama_unit }}</h2>
+                        <h2 class="text-xl sm:text-2xl font-bold text-gray-900 truncate">{{ $unit->nomor_nama }}</h2>
                         <div class="mt-1 text-sm text-gray-600">
                             <span class="font-semibold text-gray-900 font-mono">{{ $unit->kode_unit }}</span>
                             • {{ $unit->unitCategory->name ?? '-' }}
