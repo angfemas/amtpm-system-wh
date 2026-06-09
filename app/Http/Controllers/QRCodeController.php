@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Unit;
+use App\Models\UnitCategory;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use SimpleSoftwareIO\QrCode as QRCodeFacade;
@@ -13,14 +14,26 @@ class QRCodeController extends Controller
     /**
      * List units with their QR codes.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
-        $units = Unit::with('unitCategory')
-            ->orderByRaw('nomor_urut IS NULL, nomor_urut ASC')
-            ->orderBy('nama_unit')
-            ->paginate(12);
+        $query = Unit::with('unitCategory');
 
-        return view('qr-codes.index', compact('units'));
+        if ($search = $request->get('search')) {
+            $query->search($search);
+        }
+
+        if ($categoryId = $request->get('category_id')) {
+            $query->byCategory((int) $categoryId);
+        }
+
+        $units = $query->orderByRaw('nomor_urut IS NULL, nomor_urut ASC')
+            ->orderBy('nama_unit')
+            ->paginate(12)
+            ->withQueryString();
+
+        $categories = UnitCategory::active()->orderBy('name')->pluck('name', 'id');
+
+        return view('qr-codes.index', compact('units', 'categories'));
     }
 
     /**
