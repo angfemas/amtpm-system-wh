@@ -37,6 +37,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/units/{unit}/toggle-status', [UnitController::class, 'toggleStatus'])->name('units.toggle-status');
     
     // QR Code Routes
+    Route::get('qr-codes', [QRCodeController::class, 'index'])->name('qr-codes.index');
     Route::get('qr-codes/generate/{unit}', [QRCodeController::class, 'generate'])->name('qr-codes.generate');
     Route::get('qr-codes/download/{unit}', [QRCodeController::class, 'download'])->name('qr-codes.download');
     Route::get('qr-codes/{unit}', [QRCodeController::class, 'show'])->name('qr-codes.show');

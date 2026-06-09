@@ -11,6 +11,19 @@ use Illuminate\Http\Response;
 class QRCodeController extends Controller
 {
     /**
+     * List units with their QR codes.
+     */
+    public function index(): View
+    {
+        $units = Unit::with('unitCategory')
+            ->orderByRaw('nomor_urut IS NULL, nomor_urut ASC')
+            ->orderBy('nama_unit')
+            ->paginate(12);
+
+        return view('qr-codes.index', compact('units'));
+    }
+
+    /**
      * Generate QR code for a unit
      */
     public function generate(Unit $unit): Response
