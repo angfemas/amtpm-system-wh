@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreMaintenanceLogRequest;
 use App\Http\Requests\UpdateMaintenanceLogRequest;
-use App\Models\ChecklistItem;
+use App\Services\MaintenanceTagService;
 use App\Models\CustomField;
 use App\Models\MaintenanceLog;
 use App\Models\Unit;
@@ -35,7 +35,7 @@ class MaintenanceLogController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        $units = Unit::active()->orderBy('nomor_urut')->get();
+        $units = Unit::active()->orderBy('nama_unit')->get();
 
         return view('maintenance-logs.index', compact('logs', 'units'));
     }
@@ -45,14 +45,14 @@ class MaintenanceLogController extends Controller
      */
     public function create(): View
     {
-        $units = Unit::active()->orderBy('nomor_urut')->get();
+        $units = Unit::active()->orderBy('nama_unit')->get();
         return view('maintenance-logs.create', compact('units'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreMaintenanceLogRequest $request): RedirectResponse
+    public function store(StoreMaintenanceLogRequest $request, MaintenanceTagService $tagService): RedirectResponse
     {
         $data = $request->validated();
         $data['submitted_at'] = now();
@@ -71,24 +71,8 @@ class MaintenanceLogController extends Controller
         
         $log = MaintenanceLog::create($data);
         
-        // Create red/white tag if needed
-        if ($request->tag_type !== 'none' && $request->tag_description) {
-            $tagPhotoPath = null;
-            if ($request->hasFile('tag_photo') && $request->file('tag_photo')->isValid()) {
-                $tagPhotoPath = $request->file('tag_photo')->store('maintenance/tag_photos', 'public');
-            }
-            RedWhiteTag::create([
-                'unit_id' => $data['unit_id'],
-                'maintenance_log_id' => $log->id,
-                'created_by' => auth()->id() ?? null,
-                'photo_path' => $tagPhotoPath,
-                'tag_type' => $request->tag_type,
-                'description' => $request->tag_description,
-                'severity' => $request->tag_type === 'red_tag' ? 'high' : 'medium',
-                'status' => 'open',
-                'target_resolution_date' => $request->tag_type === 'red_tag' ? now()->addDays(3) : now()->addDay(),
-            ]);
-        }
+        // Use service to handle tag creation
+        $tagService->syncTag($log, $request);
         
         return redirect()
             ->route('maintenance-logs.index')
@@ -128,7 +112,7 @@ class MaintenanceLogController extends Controller
      */
     public function edit(MaintenanceLog $maintenanceLog): View
     {
-        $units = Unit::active()->orderBy('nomor_urut')->get();
+        $units = Unit::active()->orderBy('nama_unit')->get();
 
         $categoryId = $maintenanceLog->unit?->unit_category_id;
         $checklistItems = $categoryId
@@ -237,18 +221,12 @@ class MaintenanceLogController extends Controller
     /**
      * Approve maintenance log
      */
-    public function approve(Request $request, MaintenanceLog $maintenanceLog): RedirectResponse
+    public function approve(MaintenanceLog $maintenanceLog): RedirectResponse
     {
-        if ($maintenanceLog->status !== 'submitted') {
-            return redirect()
-                ->route('maintenance-logs.index')
-                ->with('error', 'Hanya log dengan status submitted yang dapat di-approve.');
-        }
-
         $maintenanceLog->update([
             'status' => 'approved',
             'approved_at' => now(),
-            'leader_id' => auth()->id(),
+            'leader_id' => auth()->id() ?? null,
         ]);
         
         return redirect()
@@ -257,44 +235,10 @@ class MaintenanceLogController extends Controller
     }
 
     /**
-     * Reject maintenance log
-     */
-    public function reject(Request $request, MaintenanceLog $maintenanceLog): RedirectResponse
-    {
-        if ($maintenanceLog->status !== 'submitted') {
-            return redirect()
-                ->route('maintenance-logs.index')
-                ->with('error', 'Hanya log dengan status submitted yang dapat di-reject.');
-        }
-
-        $request->validate([
-            'rejection_reason' => 'required|string|max:500',
-        ]);
-
-        $maintenanceLog->update([
-            'status' => 'rejected',
-            'leader_id' => auth()->id(),
-            'catatan_kerusakan' => $maintenanceLog->catatan_kerusakan
-                ? $maintenanceLog->catatan_kerusakan . "\n\n[REJECTED] " . $request->rejection_reason
-                : '[REJECTED] ' . $request->rejection_reason,
-        ]);
-        
-        return redirect()
-            ->route('maintenance-logs.index')
-            ->with('success', 'Maintenance log berhasil ditolak.');
-    }
-
-    /**
      * Complete maintenance log
      */
-    public function complete(Request $request, MaintenanceLog $maintenanceLog): RedirectResponse
+    public function complete(MaintenanceLog $maintenanceLog): RedirectResponse
     {
-        if ($maintenanceLog->status !== 'approved') {
-            return redirect()
-                ->route('maintenance-logs.index')
-                ->with('error', 'Hanya log dengan status approved yang dapat di-complete.');
-        }
-
         $maintenanceLog->update([
             'status' => 'completed',
             'completed_at' => now(),

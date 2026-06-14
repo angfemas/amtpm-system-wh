@@ -44,8 +44,7 @@ class UnitController extends Controller
             $query->byArea($areaId);
         }
 
-        $units = $query->orderByRaw('nomor_urut IS NULL, nomor_urut ASC')
-            ->orderBy('nama_unit')
+        $units = $query->orderBy('nama_unit')
             ->paginate(10)
             ->withQueryString();
 
@@ -63,9 +62,8 @@ class UnitController extends Controller
     {
         $categories = UnitCategory::active()->orderBy('name')->get();
         $areas = WarehouseArea::active()->orderBy('name')->get();
-        $nextNomorUrut = Unit::nextNomorUrut();
         
-        return view('units.create', compact('categories', 'areas', 'nextNomorUrut'));
+        return view('units.create', compact('categories', 'areas'));
     }
 
     /**
@@ -76,13 +74,14 @@ class UnitController extends Controller
         try {
             $data = $request->validated();
 
-            // Auto-assign nomor urut (last number + 1) when left blank on manual add.
-            if (empty($data['nomor_urut'])) {
-                $data['nomor_urut'] = Unit::nextNomorUrut();
-            }
-
             if ($request->hasFile('foto_unit')) {
                 $data['foto_unit'] = $request->file('foto_unit')->store('units/photos', 'public');
+            }
+            
+            // Auto-generate nomor_urut if not provided
+            if (empty($data['nomor_urut'])) {
+                $lastNomor = Unit::max('nomor_urut') ?? 0;
+                $data['nomor_urut'] = $lastNomor + 1;
             }
             
             // Generate unique QR code
@@ -95,7 +94,7 @@ class UnitController extends Controller
             
             return redirect()
                 ->route('units.index')
-                ->with('success', "Unit '{$unit->nama_unit}' berhasil ditambahkan.");
+                ->with('success', "Unit '{$unit->full_identifier}' berhasil ditambahkan.");
                 
         } catch (\Exception $e) {
             return redirect()
@@ -189,17 +188,6 @@ class UnitController extends Controller
         $areas = WarehouseArea::active()->orderBy('name')->get();
         
         return view('units.edit', compact('unit', 'categories', 'areas'));
-    }
-
-    /**
-     * Return the next available nomor urut (last number + 1).
-     */
-    public function nextNomor(): JsonResponse
-    {
-        return response()->json([
-            'success' => true,
-            'next_nomor_urut' => Unit::nextNomorUrut(),
-        ]);
     }
 
     /**
@@ -364,7 +352,7 @@ class UnitController extends Controller
             $query->byStatus($status);
         }
 
-        $units = $query->orderBy('nomor_urut')->get();
+        $units = $query->orderBy('nama_unit')->get();
 
         return response()->json([
             'success' => true,

@@ -4,7 +4,7 @@
             <div>
                 <h1 class="text-3xl font-bold text-gray-900 flex items-center">
                     <i class="bi bi-truck mr-3 text-blue-600"></i>
-                    {{ $unit->nomor_nama }}
+                    {{ $unit->nama_unit }}
                 </h1>
                 <p class="mt-1 text-sm text-gray-500">Unit details and information</p>
             </div>
@@ -19,20 +19,25 @@
         </div>
     </x-slot>
 
-    <!-- Unit Details -->
+    <div x-data="{ imageViewerOpen: false, imageViewerUrl: null, imageViewerAlt: '' }">
+        <!-- Unit Details -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6">
             <div class="flex items-center justify-between">
                 <div class="flex items-center">
                     <div class="w-16 h-16 bg-white rounded-lg flex items-center justify-center mr-4 overflow-hidden">
                         @if($unit->foto_url)
-                            <img src="{{ $unit->foto_url }}" alt="{{ $unit->foto_alt }}" class="w-full h-full object-cover">
+                            <button type="button"
+                                    @click="imageViewerUrl = {{ json_encode($unit->foto_url) }}; imageViewerAlt = {{ json_encode($unit->foto_alt) }}; imageViewerOpen = true"
+                                    class="block w-full h-full">
+                                <img src="{{ $unit->foto_url }}" alt="{{ $unit->foto_alt }}" class="w-full h-full object-cover">
+                            </button>
                         @else
                             <i class="bi bi-truck text-blue-600 text-2xl"></i>
                         @endif
                     </div>
                     <div class="text-white">
-                        <h2 class="text-2xl font-bold">{{ $unit->nomor_display }}</h2>
+                        <h2 class="text-2xl font-bold">{{ $unit->nama_unit }}</h2>
                         <p class="text-blue-100">{{ $unit->kode_unit_formatted }}</p>
                     </div>
                 </div>
@@ -50,14 +55,6 @@
                 <div class="space-y-4">
                     <h3 class="text-lg font-semibold text-gray-900">Basic Information</h3>
                     <div class="space-y-3">
-                        <div>
-                            <label class="text-sm font-medium text-gray-600">Unit Number (No)</label>
-                            <p class="text-gray-900 font-mono">{{ $unit->nomor_urut ?? '-' }}</p>
-                        </div>
-                        <div>
-                            <label class="text-sm font-medium text-gray-600">Identitas Kereta</label>
-                            <p class="text-gray-900">{{ $unit->nomor_display }}</p>
-                        </div>
                         <div>
                             <label class="text-sm font-medium text-gray-600">Unit Code</label>
                             <p class="text-gray-900 font-mono">{{ $unit->kode_unit_formatted }}</p>
@@ -129,7 +126,23 @@
                         </div>
                         <div>
                             <label class="text-sm font-medium text-gray-600">QR Code</label>
-                            <p class="text-gray-900 font-mono text-sm">{{ $unit->qr_code ?? 'Not Generated' }}</p>
+                            <div class="flex items-center gap-3 mt-2">
+                                <div class="w-24 h-24 bg-white border rounded-md flex items-center justify-center overflow-hidden">
+                                    {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(180)->generate($unit->qr_code ?? 'Not Generated') !!}
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-gray-900 font-mono text-sm" id="qr-code-text">{{ $unit->qr_code ?? 'Not Generated' }}</p>
+                                    <div class="mt-2 flex items-center gap-2">
+                                        <button type="button" onclick="copyQRCode()" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700">
+                                            <i class="bi bi-clipboard mr-2"></i> Salin Kode
+                                        </button>
+                                        <a href="{{ route('qr-codes.download', $unit->id) }}" class="inline-flex items-center px-3 py-1.5 bg-gray-200 text-gray-900 rounded-md text-sm hover:bg-gray-300">
+                                            <i class="bi bi-download mr-2"></i> Unduh QR
+                                        </a>
+                                    </div>
+                                    <p id="qr-copy-status" class="mt-2 text-sm text-green-600" style="display:none;">Tersalin ke clipboard</p>
+                                </div>
+                            </div>
                         </div>
                         <div>
                             <label class="text-sm font-medium text-gray-600">Status</label>
@@ -214,4 +227,44 @@
             </div>
         </div>
     @endif
+
+    <div x-show="imageViewerOpen"
+         x-cloak
+         @keydown.escape.window="imageViewerOpen = false"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+        <div class="relative max-w-4xl w-full rounded-3xl overflow-hidden bg-white shadow-2xl">
+            <button @click="imageViewerOpen = false"
+                    class="absolute top-4 right-4 z-10 text-white bg-black/40 rounded-full p-2 hover:bg-black/60">
+                <i class="bi bi-x-lg"></i>
+            </button>
+            <img :src="imageViewerUrl" :alt="imageViewerAlt" class="w-full h-auto object-contain max-h-[80vh] bg-black" />
+        </div>
+    </div>
+</div>
+
+<script>
+function copyQRCode() {
+    var textEl = document.getElementById('qr-code-text');
+    var statusEl = document.getElementById('qr-copy-status');
+    if (!textEl) return;
+    var text = textEl.textContent || textEl.innerText || '';
+    if (!navigator.clipboard) {
+        // Fallback
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        try { document.execCommand('copy'); } catch (e) {}
+        document.body.removeChild(textarea);
+        if (statusEl) { statusEl.style.display = 'block'; setTimeout(()=> statusEl.style.display = 'none', 2000); }
+        return;
+    }
+    navigator.clipboard.writeText(text).then(function() {
+        if (statusEl) { statusEl.style.display = 'block'; setTimeout(()=> statusEl.style.display = 'none', 2000); }
+    }).catch(function(err) {
+        console.error('Could not copy text: ', err);
+    });
+}
+</script>
+
 </x-industrial-layout>

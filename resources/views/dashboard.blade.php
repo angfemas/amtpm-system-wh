@@ -61,21 +61,70 @@
                     </select>
                     <i class="bi bi-calendar3 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
                 </div>
-                <button type="button" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center shadow-sm hover:shadow-md">
+                <button type="button" onclick="exportReport('full')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center shadow-sm hover:shadow-md">
                     <i class="bi bi-download mr-2"></i>
                     Export Report
+                </button>
+                <button type="button" onclick="exportReport('daily')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center shadow-sm hover:shadow-md">
+                    <i class="bi bi-file-earmark-text mr-2"></i>
+                    Daily Report
                 </button>
             </div>
         </div>
     </x-slot>
 
-    @if(($overdueCount ?? 0) > 0)
-        <x-notification-toast
-            type="overdue"
-            title="Overdue Maintenance"
-            message="Ada {{ $overdueCount }} item maintenance yang melewati target."
-            :show="true"
-        />
+    @if(($overdueCount ?? 0) > 0 && ($overdueUnits ?? collect())->count() > 0)
+        <!-- Auto-sliding Overdue Units Carousel -->
+        <div class="bg-gradient-to-r from-red-600 to-red-700 rounded-xl shadow-lg p-6 mb-8 overflow-hidden">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center">
+                    <i class="bi bi-exclamation-triangle-fill text-white text-2xl mr-3 animate-pulse"></i>
+                    <h3 class="text-xl font-bold text-white">Overdue Maintenance Alert</h3>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="prevSlide()" class="bg-white/20 hover:bg-white/30 text-white p-2 rounded-lg transition">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <span id="slideCounter" class="text-white font-medium">1 / {{ $overdueUnits->count() }}</span>
+                    <button onclick="nextSlide()" class="bg-white/20 hover:bg-white/30 text-white p-2 rounded-lg transition">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="overdueCarousel" class="relative">
+                @foreach($overdueUnits as $index => $unit)
+                    <div class="carousel-slide {{ $index === 0 ? 'active' : 'hidden' }}" data-index="{{ $index }}">
+                        <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <div class="bg-white/20 p-3 rounded-lg">
+                                        <i class="bi bi-truck text-white text-2xl"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-white font-bold text-lg">{{ $unit->nomor_display }}</p>
+                                        <p class="text-red-100 text-sm">{{ $unit->unitCategory->name ?? 'Uncategorized' }}</p>
+                                        <p class="text-red-200 text-xs mt-1">
+                                            Due: {{ $unit->maintenance_due_date ? $unit->maintenance_due_date->format('d M Y') : 'N/A' }}
+                                            ({{ $unit->maintenance_due_date ? $unit->maintenance_due_date->diffForHumans() : 'N/A' }})
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <a href="{{ route('maintenance-logs.create', ['unit_id' => $unit->id]) }}" class="bg-white hover:bg-gray-100 text-red-600 px-4 py-2 rounded-lg font-medium transition flex items-center">
+                                        <i class="bi bi-wrench mr-2"></i>
+                                        Quick Maintenance
+                                    </a>
+                                    <a href="{{ route('units.show', $unit->id) }}" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg font-medium transition flex items-center">
+                                        <i class="bi bi-eye mr-2"></i>
+                                        View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
     @endif
 
     <!-- Statistic Cards -->
@@ -248,7 +297,7 @@
                 <div class="px-6 py-4 hover:bg-gray-50 transition-colors">
                     <div class="flex items-center justify-between">
                         <div class="flex-1 min-w-0">
-                            <p class="text-sm font-medium text-gray-900 truncate">{{ $log->unit->nomor_display ?? 'N/A' }}</p>
+                            <p class="text-sm font-medium text-gray-900 truncate">{{ $log->unit_name }}</p>
                             <p class="text-xs text-gray-500">Operator: {{ $log->operator->name ?? 'N/A' }} &middot; {{ $log->submitted_at ? $log->submitted_at->diffForHumans() : '-' }}</p>
                         </div>
                         <div class="flex items-center space-x-2 ml-4">
@@ -373,7 +422,8 @@
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ $log->unit->nomor_display ?? 'N/A' }}
+                                <div class="font-bold">{{ $log->unit_code }}</div>
+                                <div class="text-xs text-gray-500">{{ $log->unit_name }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {{ $log->operator->name ?? 'N/A' }}
@@ -401,6 +451,76 @@
 </x-industrial-layout>
 
 <script>
+    let currentSlide = 0;
+    let slideInterval;
+    const totalSlides = {{ ($overdueUnits ?? collect())->count() }};
+
+    function showSlide(index) {
+        const slides = document.querySelectorAll('.carousel-slide');
+        slides.forEach((slide, i) => {
+            slide.classList.remove('active');
+            slide.classList.add('hidden');
+            if (i === index) {
+                slide.classList.remove('hidden');
+                slide.classList.add('active');
+            }
+        });
+        const counter = document.getElementById('slideCounter');
+        if (counter) {
+            counter.textContent = `${index + 1} / ${totalSlides}`;
+        }
+        currentSlide = index;
+    }
+
+    function nextSlide() {
+        if (totalSlides <= 1) return;
+        const next = (currentSlide + 1) % totalSlides;
+        showSlide(next);
+        resetInterval();
+    }
+
+    function prevSlide() {
+        if (totalSlides <= 1) return;
+        const prev = (currentSlide - 1 + totalSlides) % totalSlides;
+        showSlide(prev);
+        resetInterval();
+    }
+
+    function startAutoSlide() {
+        if (totalSlides > 1) {
+            slideInterval = setInterval(nextSlide, 5000);
+        }
+    }
+
+    function resetInterval() {
+        clearInterval(slideInterval);
+        startAutoSlide();
+    }
+
+    function exportReport(type) {
+        const url = type === 'daily'
+            ? '{{ route('dashboard.export-daily') }}'
+            : '{{ route('dashboard.export') }}';
+        window.location.href = url;
+    }
+
+    async function updateDashboardData() {
+        try {
+            const response = await fetch('{{ route('dashboard.data') }}');
+            const data = await response.json();
+
+            const statCards = document.querySelectorAll('.grid.grid-cols-1.sm\\:grid-cols-2.lg\\:grid-cols-3 .text-3xl.font-bold');
+            if (statCards[0] && data.totalUnits !== undefined) statCards[0].textContent = data.totalUnits;
+            if (statCards[1] && data.overdueCount !== undefined) statCards[1].textContent = data.overdueCount;
+            if (statCards[2] && data.maintenanceTodayCount !== undefined) statCards[2].textContent = data.maintenanceTodayCount;
+            if (statCards[3] && data.redTagCount !== undefined) statCards[3].textContent = data.redTagCount;
+            if (statCards[4] && data.whiteTagCount !== undefined) statCards[4].textContent = data.whiteTagCount;
+            if (statCards[5] && data.maintenanceMonthCount !== undefined) statCards[5].textContent = data.maintenanceMonthCount;
+        } catch (error) {
+            console.error('Error updating dashboard data:', error);
+        }
+    }
+
     function openRejectModal(logId) {
         const modal = document.getElementById('rejectModal');
         const form = document.getElementById('rejectForm');
@@ -424,6 +544,9 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        startAutoSlide();
+        setInterval(updateDashboardData, 30000);
+
         const ranges = {
             daily: {
                 labels: @json($dailyLabels),

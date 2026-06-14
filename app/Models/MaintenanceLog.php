@@ -94,8 +94,13 @@ class MaintenanceLog extends Model
         return $this->status === 'submitted';
     }
 
-    public function isApproved(): bool
+    public function getUnitNameAttribute(): string
     {
-        return $this->status === 'approved';
+        return $this->unit ? $this->unit->nama_unit : 'Unit Tidak Ditemukan';
+    }
+
+    public function getUnitCodeAttribute(): string
+    {
+        return $this->unit ? $this->unit->kode_unit : '-';
     }
 }

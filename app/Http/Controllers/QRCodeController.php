@@ -3,50 +3,28 @@
 namespace App\Http\Controllers;
 
 use App\Models\Unit;
-use App\Models\UnitCategory;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\View\View;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use SimpleSoftwareIO\QrCode as QRCodeFacade;
+use Illuminate\Http\Response;
 
 class QRCodeController extends Controller
 {
-    /**
-     * List units with their QR codes.
-     */
-    public function index(Request $request): View
-    {
-        $query = Unit::with('unitCategory');
-
-        if ($search = $request->get('search')) {
-            $query->search($search);
-        }
-
-        if ($categoryId = $request->get('category_id')) {
-            $query->byCategory((int) $categoryId);
-        }
-
-        $units = $query->orderByRaw('nomor_urut IS NULL, nomor_urut ASC')
-            ->orderBy('nama_unit')
-            ->paginate(12)
-            ->withQueryString();
-
-        $categories = UnitCategory::active()->orderBy('name')->pluck('name', 'id');
-
-        $qrCodes = [];
-        foreach ($units as $unit) {
-            $qrCodes[$unit->id] = $this->svg($this->qrValue($unit), 140);
-        }
-
-        return view('qr-codes.index', compact('units', 'categories', 'qrCodes'));
-    }
-
     /**
      * Generate QR code for a unit
      */
     public function generate(Unit $unit): Response
     {
-        return $this->svgResponse($unit);
+        $qrCode = QRCodeFacade::format('png')
+            ->size(300)
+            ->margin(2)
+            ->generate($unit->qr_code);
+
+        // Return inline image (for embedding in <img>)
+        return response($qrCode, 200, [
+            'Content-Type' => 'image/png',
+            'Cache-Control' => 'public, max-age=31536000',
+        ]);
     }
 
     /**
@@ -54,7 +32,15 @@ class QRCodeController extends Controller
      */
     public function download(Unit $unit): Response
     {
-        return $this->svgResponse($unit);
+        $qrCode = QRCodeFacade::format('png')
+            ->size(300)
+            ->margin(2)
+            ->generate($unit->qr_code);
+
+        return response($qrCode, 200, [
+            'Content-Type' => 'image/png',
+            'Content-Disposition' => 'attachment; filename="qr-'.$unit->kode_unit.'.png',
+        ]);
     }
 
     /**
@@ -62,44 +48,7 @@ class QRCodeController extends Controller
      */
     public function show(Unit $unit): View
     {
-        $qrSvg = $this->svg($this->qrValue($unit), 300);
-
-        return view('qr-codes.show', compact('unit', 'qrSvg'));
-    }
-
-    /**
-     * Resolve the value to encode in a unit's QR code.
-     */
-    private function qrValue(Unit $unit): string
-    {
-        return $unit->qr_code ?: ($unit->kode_unit ?: 'UNIT-'.$unit->id);
-    }
-
-    /**
-     * Render an SVG QR code (no imagick dependency).
-     */
-    private function svg(string $value, int $size): string
-    {
-        return QrCode::format('svg')
-            ->size($size)
-            ->margin(1)
-            ->generate($value);
-    }
-
-    /**
-     * Build a downloadable SVG QR response for a unit.
-     */
-    private function svgResponse(Unit $unit): Response
-    {
-        $qrCode = QrCode::format('svg')
-            ->size(300)
-            ->margin(2)
-            ->generate($this->qrValue($unit));
-
-        return response($qrCode, 200, [
-            'Content-Type' => 'image/svg+xml',
-            'Content-Disposition' => 'attachment; filename="qr-'.$unit->kode_unit.'.svg"',
-        ]);
+        return view('qr-codes.show', compact('unit'));
     }
 
     /**
@@ -108,8 +57,16 @@ class QRCodeController extends Controller
     public function scan(Request $request): View
     {
         $qrCode = $request->input('qr_code');
-        $unit = Unit::where('qr_code', $qrCode)->firstOrFail();
 
-        return view('qr-codes.scan', compact('unit'));
+        if (! $qrCode) {
+            return view('qr-codes.scan');
+        }
+
+        $unit = Unit::where('qr_code', $qrCode)->first();
+
+        return view('qr-codes.scan', [
+            'unit' => $unit,
+            'searchQrCode' => $qrCode,
+        ]);
     }
 }

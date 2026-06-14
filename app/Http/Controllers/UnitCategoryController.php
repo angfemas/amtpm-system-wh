@@ -89,7 +89,7 @@ class UnitCategoryController extends Controller
     {
         $units = $unitCategory->units()
                             ->with('warehouseArea')
-                            ->orderBy('nomor_urut')
+                            ->orderBy('nama_unit')
                             ->paginate(10);
                             
         return view('unit-categories.show', compact('unitCategory', 'units'));

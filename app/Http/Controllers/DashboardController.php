@@ -6,6 +6,7 @@ use App\Models\MaintenanceLog;
 use App\Models\Unit;
 use App\Models\RedWhiteTag;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DashboardController extends Controller
 {
@@ -84,6 +85,13 @@ class DashboardController extends Controller
             }
         }
 
+        $overdueUnits = Unit::with('unitCategory')
+            ->active()
+            ->whereNotNull('tanggal_maintenance_terakhir')
+            ->where('interval_hari', '>', 0)
+            ->get()
+            ->filter(fn (Unit $u) => $u->is_overdue);
+
         return view('dashboard', compact(
             'totalUnits',
             'activeUnits',
@@ -96,7 +104,8 @@ class DashboardController extends Controller
             'unitsByCategory',
             'maintenanceByStatus',
             'pendingApprovalLogs',
-            'pendingCompletionLogs'
+            'pendingCompletionLogs',
+            'overdueUnits'
         ));
     }
 
@@ -107,6 +116,18 @@ class DashboardController extends Controller
     {
         $totalUnits = Unit::count();
         $activeUnits = Unit::where('is_active', true)->count();
+        $overdueCount = Unit::active()
+            ->whereNotNull('tanggal_maintenance_terakhir')
+            ->where('interval_hari', '>', 0)
+            ->get()
+            ->filter(fn (Unit $u) => $u->is_overdue)
+            ->count();
+        $maintenanceTodayCount = MaintenanceLog::whereDate('submitted_at', now()->toDateString())->count();
+        $redTagCount = RedWhiteTag::where('tag_type', 'red_tag')->where('status', 'open')->count();
+        $whiteTagCount = RedWhiteTag::where('tag_type', 'white_tag')->where('status', 'open')->count();
+        $maintenanceMonthCount = MaintenanceLog::whereYear('submitted_at', now()->year)
+            ->whereMonth('submitted_at', now()->month)
+            ->count();
         $maintenanceLogs = MaintenanceLog::count();
         $pendingLogs = MaintenanceLog::where('status', 'submitted')->count();
         $openTags = RedWhiteTag::where('status', 'open')->count();
@@ -118,6 +139,11 @@ class DashboardController extends Controller
         return [
             'totalUnits' => $totalUnits,
             'activeUnits' => $activeUnits,
+            'overdueCount' => $overdueCount,
+            'maintenanceTodayCount' => $maintenanceTodayCount,
+            'redTagCount' => $redTagCount,
+            'whiteTagCount' => $whiteTagCount,
+            'maintenanceMonthCount' => $maintenanceMonthCount,
             'maintenanceLogs' => $maintenanceLogs,
             'pendingLogs' => $pendingLogs,
             'openTags' => $openTags,
@@ -161,5 +187,154 @@ class DashboardController extends Controller
             ])
             ->values()
             ->all();
+    }
+
+    /**
+     * Export full dashboard report as CSV.
+     */
+    public function export(): StreamedResponse
+    {
+        $fileName = 'dashboard_report_' . now()->format('Y-m-d_H-i-s') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$fileName}\"",
+        ];
+
+        $callback = function () {
+            $file = fopen('php://output', 'w');
+
+            fputcsv($file, ['Report Type', 'Total Units', 'Active Units', 'Overdue Maintenance', 'Maintenance Today', 'Red Tags', 'White Tags', 'Maintenance This Month', 'Generated At']);
+
+            $totalUnits = Unit::count();
+            $activeUnits = Unit::where('is_active', true)->count();
+            $overdueCount = Unit::active()
+                ->whereNotNull('tanggal_maintenance_terakhir')
+                ->where('interval_hari', '>', 0)
+                ->get()
+                ->filter(fn (Unit $u) => $u->is_overdue)
+                ->count();
+            $maintenanceTodayCount = MaintenanceLog::whereDate('submitted_at', now()->toDateString())->count();
+            $redTagCount = RedWhiteTag::where('tag_type', 'red_tag')->where('status', 'open')->count();
+            $whiteTagCount = RedWhiteTag::where('tag_type', 'white_tag')->where('status', 'open')->count();
+            $maintenanceMonthCount = MaintenanceLog::whereYear('submitted_at', now()->year)
+                ->whereMonth('submitted_at', now()->month)
+                ->count();
+
+            fputcsv($file, [
+                'Dashboard Summary',
+                $totalUnits,
+                $activeUnits,
+                $overdueCount,
+                $maintenanceTodayCount,
+                $redTagCount,
+                $whiteTagCount,
+                $maintenanceMonthCount,
+                now()->format('Y-m-d H:i:s'),
+            ]);
+
+            fputcsv($file, []);
+            fputcsv($file, ['Recent Activities']);
+            fputcsv($file, ['Activity', 'Unit', 'Operator', 'Status', 'Submitted At']);
+
+            $recentLogs = MaintenanceLog::with(['unit', 'operator'])
+                ->orderBy('submitted_at', 'desc')
+                ->limit(10)
+                ->get();
+
+            foreach ($recentLogs as $log) {
+                fputcsv($file, [
+                    'Maintenance',
+                    $log->unit?->nomor_display ?? 'N/A',
+                    $log->operator->name ?? 'N/A',
+                    $log->status,
+                    $log->submitted_at ? $log->submitted_at->format('Y-m-d H:i:s') : '-',
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Export daily dashboard report as CSV.
+     */
+    public function exportDaily(): StreamedResponse
+    {
+        $fileName = 'daily_report_' . now()->format('Y-m-d') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$fileName}\"",
+        ];
+
+        $callback = function () {
+            $file = fopen('php://output', 'w');
+
+            fputcsv($file, ['Daily Report - ' . now()->format('Y-m-d')]);
+            fputcsv($file, []);
+            fputcsv($file, ['Metric', 'Count']);
+            fputcsv($file, ['Total Units', Unit::count()]);
+            fputcsv($file, ['Active Units', Unit::where('is_active', true)->count()]);
+            fputcsv($file, ['Maintenance Today', MaintenanceLog::whereDate('submitted_at', now()->toDateString())->count()]);
+            fputcsv($file, ['Overdue Maintenance', Unit::active()
+                ->whereNotNull('tanggal_maintenance_terakhir')
+                ->where('interval_hari', '>', 0)
+                ->get()
+                ->filter(fn (Unit $u) => $u->is_overdue)
+                ->count()]);
+            fputcsv($file, ['Open Red Tags', RedWhiteTag::where('tag_type', 'red_tag')->where('status', 'open')->count()]);
+            fputcsv($file, ['Open White Tags', RedWhiteTag::where('tag_type', 'white_tag')->where('status', 'open')->count()]);
+
+            fputcsv($file, []);
+            fputcsv($file, ['Today\'s Maintenance Activities']);
+            fputcsv($file, ['Unit', 'Operator', 'Status', 'Submitted At', 'Kilometer', 'Hour Meter']);
+
+            $todayLogs = MaintenanceLog::with(['unit', 'operator'])
+                ->whereDate('submitted_at', now()->toDateString())
+                ->orderBy('submitted_at', 'desc')
+                ->get();
+
+            foreach ($todayLogs as $log) {
+                fputcsv($file, [
+                    $log->unit?->nomor_display ?? 'N/A',
+                    $log->operator->name ?? 'N/A',
+                    $log->status,
+                    $log->submitted_at ? $log->submitted_at->format('H:i:s') : '-',
+                    $log->kilometer_input ?? '-',
+                    $log->hour_meter_input ?? '-',
+                ]);
+            }
+
+            fputcsv($file, []);
+            fputcsv($file, ['Overdue Units']);
+            fputcsv($file, ['Unit', 'Category', 'Last Maintenance', 'Due Date', 'Days Overdue']);
+
+            $overdueUnits = Unit::with('unitCategory')
+                ->active()
+                ->whereNotNull('tanggal_maintenance_terakhir')
+                ->where('interval_hari', '>', 0)
+                ->get()
+                ->filter(fn (Unit $u) => $u->is_overdue);
+
+            foreach ($overdueUnits as $unit) {
+                $dueDate = $unit->maintenance_due_date;
+                $daysOverdue = $dueDate ? $dueDate->diffInDays(now(), false) : 0;
+
+                fputcsv($file, [
+                    $unit->nomor_display,
+                    $unit->unitCategory->name ?? 'Uncategorized',
+                    $unit->tanggal_maintenance_terakhir ? $unit->tanggal_maintenance_terakhir->format('Y-m-d') : 'N/A',
+                    $dueDate ? $dueDate->format('Y-m-d') : 'N/A',
+                    $daysOverdue,
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 }

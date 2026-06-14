@@ -140,6 +140,8 @@
             <!-- Scanner Frame -->
             <div class="scanner-frame mb-8" x-show="!scanResult">
                 <div class="scanner-line"></div>
+                <video id="qr-video" autoplay playsinline style="display:none"></video>
+                <canvas id="qr-canvas" style="display:none"></canvas>
                 <div class="flex items-center justify-center h-full">
                     <div class="text-center">
                         <i class="bi bi-qr-code-scan text-6xl mb-4 opacity-50"></i>
@@ -285,67 +287,105 @@
         </nav>
     </div>
 
+    <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
     <script>
+        let _qrScanActive = false;
+        let _qrScanAnimationId = null;
+
         function startScan() {
             Alpine.store.app.scanning = true;
-            
-            // Check if device has camera
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: 'environment' } 
-                })
-                .then(function(stream) {
-                    // Camera access granted
-                    setTimeout(() => {
-                        // Simulate QR code detection
-                        fetch('/qr-scan/process', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                            },
-                            body: JSON.stringify({
-                                action: 'scan',
-                                timestamp: new Date().toISOString()
-                            })
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            Alpine.store.app.scanning = false;
-                            if (data.success) {
-                                Alpine.store.app.scanResult = data.unit;
-                                // Add to recent scans
-                                Alpine.store.app.recentScans.unshift({
-                                    code: data.unit.code,
-                                    name: data.unit.name,
-                                    time: 'Just now'
-                                });
-                                
-                                // Show notification
-                                showNotification('success', 'Unit scanned successfully!');
-                                
-                                // Redirect to unit details after 2 seconds
-                                setTimeout(() => {
-                                    window.location.href = `/units/${data.unit.id}`;
-                                }, 2000);
-                            } else {
-                                showNotification('error', data.message || 'Failed to scan unit');
-                            }
-                        })
-                        .catch(error => {
-                            Alpine.store.app.scanning = false;
-                            showNotification('error', 'Scan failed. Please try again.');
-                        });
-                    }, 3000);
-                })
-                .catch(function(error) {
-                    Alpine.store.app.scanning = false;
-                    showNotification('error', 'Camera access denied');
-                });
-            } else {
-                // Fallback to manual input
+
+            if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
                 Alpine.store.app.showManualModal = true;
                 Alpine.store.app.scanning = false;
+                return;
+            }
+
+            const video = document.getElementById('qr-video');
+            const canvas = document.getElementById('qr-canvas');
+            const ctx = canvas.getContext('2d');
+
+            navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+            }).then(stream => {
+                video.srcObject = stream;
+                video.play().catch(()=>{});
+                _qrScanActive = true;
+
+                // Small processing size for speed (black-white preprocessing)
+                const scanWidth = 320;
+                const scanHeight = 240;
+                canvas.width = scanWidth;
+                canvas.height = scanHeight;
+
+                function tick() {
+                    if (!_qrScanActive) return;
+                    try {
+                        ctx.drawImage(video, 0, 0, scanWidth, scanHeight);
+                        let imageData = ctx.getImageData(0, 0, scanWidth, scanHeight);
+                        let data = imageData.data;
+
+                        // Convert to high-contrast black & white (binary) to improve decode speed
+                        for (let i = 0; i < data.length; i += 4) {
+                            const r = data[i], g = data[i+1], b = data[i+2];
+                            const l = 0.299 * r + 0.587 * g + 0.114 * b;
+                            const v = l > 130 ? 255 : 0;
+                            data[i] = data[i+1] = data[i+2] = v;
+                        }
+                        ctx.putImageData(imageData, 0, 0);
+
+                        const code = jsQR(imageData.data, scanWidth, scanHeight);
+                        if (code) {
+                            stopScan();
+                            // quick local feedback
+                            Alpine.store.app.scanResult = { code: code.data, name: code.data };
+
+                            // resolve on server (fast lookup)
+                            fetch('/qr-scan/process', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                },
+                                body: JSON.stringify({ action: 'scan', code: code.data })
+                            })
+                            .then(r => r.json())
+                            .then(data => {
+                                if (data.success) {
+                                    Alpine.store.app.scanResult = data.unit;
+                                    Alpine.store.app.recentScans.unshift({ code: data.unit.code, name: data.unit.name, time: 'Just now' });
+                                    showNotification('success', 'Unit scanned successfully!');
+                                    setTimeout(() => { window.location.href = `/units/${data.unit.id}`; }, 1200);
+                                } else {
+                                    showNotification('error', data.message || 'Failed to scan unit');
+                                }
+                            }).catch(() => {
+                                showNotification('error', 'Server lookup failed');
+                            });
+                            return;
+                        }
+                    } catch (e) {
+                        // ignore frame errors
+                    }
+                    _qrScanAnimationId = requestAnimationFrame(tick);
+                }
+
+                _qrScanAnimationId = requestAnimationFrame(tick);
+            }).catch(err => {
+                Alpine.store.app.scanning = false;
+                showNotification('error', 'Camera access denied');
+            });
+        }
+
+        function stopScan() {
+            Alpine.store.app.scanning = false;
+            _qrScanActive = false;
+            if (_qrScanAnimationId) cancelAnimationFrame(_qrScanAnimationId);
+            const video = document.getElementById('qr-video');
+            if (video && video.srcObject) {
+                const tracks = video.srcObject.getTracks();
+                tracks.forEach(t => t.stop());
+                video.srcObject = null;
             }
         }
         

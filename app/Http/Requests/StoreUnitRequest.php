@@ -24,8 +24,8 @@ class StoreUnitRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nomor_urut' => ['nullable', 'integer', 'min:1'],
             'kode_unit' => ['required', 'string', 'max:50', 'unique:units,kode_unit'],
+            'nomor_urut' => ['nullable', 'integer', 'min:1', 'unique:units,nomor_urut'],
             'nama_unit' => ['required', 'string', 'max:255'],
             'unit_category_id' => ['required', 'exists:unit_categories,id'],
             'warehouse_area_id' => ['required', 'exists:warehouse_areas,id'],
@@ -47,8 +47,6 @@ class StoreUnitRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'nomor_urut.integer' => 'Nomor unit harus berupa angka.',
-            'nomor_urut.min' => 'Nomor unit minimal 1.',
             'kode_unit.required' => 'Kode unit wajib diisi.',
             'kode_unit.unique' => 'Kode unit sudah digunakan.',
             'nama_unit.required' => 'Nama unit wajib diisi.',

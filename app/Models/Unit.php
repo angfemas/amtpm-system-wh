@@ -19,8 +19,8 @@ class Unit extends Model
     protected $table = 'units';
 
     protected $fillable = [
-        'nomor_urut',
         'kode_unit',
+        'nomor_urut',
         'nama_unit',
         'unit_category_id',
         'warehouse_area_id',
@@ -37,7 +37,6 @@ class Unit extends Model
     ];
 
     protected $casts = [
-        'nomor_urut' => 'integer',
         'tanggal_maintenance_terakhir' => 'date',
         'kilometer' => 'decimal:2',
         'hour_meter' => 'decimal:2',
@@ -50,13 +49,13 @@ class Unit extends Model
     ];
 
     protected $appends = [
-        'nomor_display',
         'maintenance_due_date',
         'is_overdue',
         'status_badge',
         'jenis_maintenance_display',
         'foto_url',
         'foto_alt',
+        'full_identifier',
     ];
 
     // Relationships
@@ -116,7 +115,6 @@ class Unit extends Model
         return $query->where(function (Builder $q) use ($search) {
             $q->where('kode_unit', 'like', "%{$search}%")
               ->orWhere('nama_unit', 'like', "%{$search}%")
-              ->orWhere('nomor_urut', 'like', "%{$search}%")
               ->orWhere('keterangan', 'like', "%{$search}%");
         });
     }
@@ -191,54 +189,31 @@ class Unit extends Model
         return $this->nama_unit ? "Foto unit {$this->nama_unit}" : 'Foto unit';
     }
 
+    public function getFullIdentifierAttribute(): string
+    {
+        $categoryName = $this->unitCategory?->name ?? 'uncategorized';
+        $nomorUrut = $this->nomor_urut ?? $this->id;
+        
+        return "{$nomorUrut}-{$this->nama_unit}-{$categoryName}";
+    }
+
     public function getKodeUnitFormattedAttribute(): string
     {
         return strtoupper($this->kode_unit);
     }
 
-    /**
-     * Identitas penomoran kereta dengan format: no nama_unit unit_category.
-     * Contoh: "10 kereta universal MTC setting sport".
-     */
-    public function getNomorDisplayAttribute(): string
+    protected static function booted()
     {
-        $parts = [];
-
-        if ($this->nomor_urut !== null) {
-            $parts[] = $this->nomor_urut;
-        }
-
-        if ($this->nama_unit) {
-            $parts[] = $this->nama_unit;
-        }
-
-        $categoryName = $this->unitCategory?->name;
-        if ($categoryName) {
-            $parts[] = $categoryName;
-        }
-
-        return trim(implode(' ', $parts));
+        static::creating(function (Unit $unit) {
+            if (empty($unit->qr_code)) {
+                $unit->qr_code = self::generateQrCode();
+            }
+        });
     }
 
-    /**
-     * Identitas ringkas: no nama_unit (tanpa kategori).
-     * Dipakai di tempat yang sudah menampilkan kategori/area secara terpisah.
-     */
-    public function getNomorNamaAttribute(): string
+    public static function generateQrCode(): string
     {
-        if ($this->nomor_urut !== null) {
-            return trim("{$this->nomor_urut} {$this->nama_unit}");
-        }
-
-        return (string) $this->nama_unit;
-    }
-
-    /**
-     * Nomor urut berikutnya berdasarkan nomor terakhir yang tersimpan.
-     */
-    public static function nextNomorUrut(): int
-    {
-        return (int) static::max('nomor_urut') + 1;
+        return 'UNIT-' . strtoupper(uniqid());
     }
 
     // Activity Logging

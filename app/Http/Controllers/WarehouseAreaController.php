@@ -97,7 +97,7 @@ class WarehouseAreaController extends Controller
     {
         $units = $warehouseArea->units()
                              ->with('unitCategory')
-                             ->orderBy('nomor_urut')
+                             ->orderBy('nama_unit')
                              ->paginate(10);
                              
         return view('warehouse-areas.show', compact('warehouseArea', 'units'));

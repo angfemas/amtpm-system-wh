@@ -15,8 +15,9 @@
         </div>
     </x-slot>
 
-    <!-- Maintenance Log Details -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+    <div x-data="{ imageViewerOpen: false, imageViewerUrl: null, imageViewerAlt: '' }">
+        <!-- Maintenance Log Details -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
         <div class="p-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Left Column -->
@@ -26,7 +27,7 @@
                         <div class="space-y-3">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Unit</label>
-                                <p class="mt-1 text-sm text-gray-900">{{ $maintenanceLog->unit ? $maintenanceLog->unit->nomor_display : '-' }}</p>
+                                <p class="mt-1 text-sm text-gray-900">{{ $maintenanceLog->unit ? $maintenanceLog->unit->nama_unit : '-' }}</p>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Submitted Date</label>
@@ -93,7 +94,11 @@
                                     $photos = is_array($photos) ? $photos : [];
                                 @endphp
                                 @foreach($photos as $photo)
-                                    <img src="{{ Storage::url($photo) }}" alt="Maintenance Photo" class="w-full h-32 object-cover rounded-lg">
+                                    <button type="button"
+                                            @click="imageViewerUrl = {{ json_encode(Storage::url($photo)) }}; imageViewerAlt = 'Maintenance Photo'; imageViewerOpen = true"
+                                            class="block overflow-hidden rounded-lg hover:opacity-90 transition-opacity focus:outline-none">
+                                        <img src="{{ Storage::url($photo) }}" alt="Maintenance Photo" class="w-full h-32 object-cover rounded-lg">
+                                    </button>
                                 @endforeach
                             </div>
                         </div>
@@ -197,7 +202,7 @@
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Related Tags</h3>
                     <div class="space-y-3">
                         @foreach($maintenanceLog->redWhiteTags as $tag)
-                            <div class="border rounded-lg p-4">
+                            <div class="block border rounded-lg p-4 hover:border-blue-300 transition-colors">
                                 <div class="flex justify-between items-start">
                                     <div>
                                         <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
@@ -205,12 +210,16 @@
                                             @else bg-white text-gray-800 border border-gray-300 @endif">
                                             {{ ucfirst(str_replace('_', ' ', $tag->tag_type)) }}
                                         </span>
-                                            <p class="mt-2 text-sm text-gray-900">{{ $tag->description }}</p>
-                                            @if($tag->photo_path)
-                                                <div class="mt-2">
+                                        <p class="mt-2 text-sm text-gray-900">{{ $tag->description }}</p>
+                                        @if($tag->photo_path)
+                                            <div class="mt-2">
+                                                <button type="button"
+                                                        @click="imageViewerUrl = {{ json_encode(str_starts_with($tag->photo_path, 'http') ? $tag->photo_path : Storage::url($tag->photo_path)) }}; imageViewerAlt = 'Tag Photo'; imageViewerOpen = true"
+                                                        class="block overflow-hidden rounded-lg focus:outline-none">
                                                     <img src="{{ str_starts_with($tag->photo_path, 'http') ? $tag->photo_path : Storage::url($tag->photo_path) }}" alt="Tag Photo" class="w-48 h-32 object-cover rounded-lg border border-gray-200">
-                                                </div>
-                                            @endif
+                                                </button>
+                                            </div>
+                                        @endif
                                         <p class="mt-1 text-xs text-gray-500">Severity: {{ $tag->severity }}</p>
                                     </div>
                                     <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
@@ -230,74 +239,27 @@
             <!-- Actions -->
             <div class="mt-6 flex justify-end space-x-3">
                 @if($maintenanceLog->status == 'submitted' && auth()->user()->can('maintenance.approve'))
-                    <form method="POST" action="{{ route('maintenance-logs.approve', $maintenanceLog) }}" class="inline" onsubmit="return confirm('Approve maintenance log ini?')">
-                        @csrf
-                        <button type="submit" class="inline-flex items-center px-4 py-2 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 transition-colors shadow-sm">
-                            <i class="bi bi-check-lg mr-2"></i> Approve
-                        </button>
-                    </form>
-                    <button type="button" onclick="openRejectModal({{ $maintenanceLog->id }})"
-                        class="inline-flex items-center px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors shadow-sm">
-                        <i class="bi bi-x-lg mr-2"></i> Reject
-                    </button>
+                    <x-industrial-button variant="success" href="{{ route('maintenance-logs.approve', $maintenanceLog) }}" icon="check">
+                        Approve
+                    </x-industrial-button>
                 @endif
                 @if($maintenanceLog->status == 'approved' && auth()->user()->can('maintenance.complete'))
-                    <form method="POST" action="{{ route('maintenance-logs.complete', $maintenanceLog) }}" class="inline" onsubmit="return confirm('Complete maintenance log ini?')">
-                        @csrf
-                        <button type="submit" class="inline-flex items-center px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors shadow-sm">
-                            <i class="bi bi-check-circle mr-2"></i> Complete
-                        </button>
-                    </form>
+                    <x-industrial-button variant="primary" href="{{ route('maintenance-logs.complete', $maintenanceLog) }}" icon="check-circle">
+                        Complete
+                    </x-industrial-button>
                 @endif
+            </div>
+        <div x-show="imageViewerOpen"
+             x-cloak
+             @keydown.escape.window="imageViewerOpen = false"
+             class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+            <div class="relative max-w-4xl w-full rounded-3xl overflow-hidden bg-white shadow-2xl">
+                <button @click="imageViewerOpen = false"
+                        class="absolute top-4 right-4 z-10 text-white bg-black/40 rounded-full p-2 hover:bg-black/60">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+                <img :src="imageViewerUrl" :alt="imageViewerAlt" class="w-full h-auto object-contain max-h-[80vh] bg-black" />
             </div>
         </div>
     </div>
-
-    <!-- Reject Modal -->
-    <div id="rejectModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black bg-opacity-50">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <i class="bi bi-x-octagon text-red-600 mr-2"></i>
-                Reject Maintenance Log
-            </h3>
-            <form id="rejectForm" method="POST" action="">
-                @csrf
-                <div class="mb-4">
-                    <label for="rejection_reason" class="block text-sm font-medium text-gray-700 mb-2">Alasan Penolakan <span class="text-red-500">*</span></label>
-                    <textarea id="rejection_reason" name="rejection_reason" rows="3" required
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                        placeholder="Masukkan alasan penolakan..."></textarea>
-                </div>
-                <div class="flex justify-end space-x-3">
-                    <button type="button" onclick="closeRejectModal()" class="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 transition-colors">
-                        Batal
-                    </button>
-                    <button type="submit" class="px-4 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-colors">
-                        Reject
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script>
-        function openRejectModal(logId) {
-            const modal = document.getElementById('rejectModal');
-            const form = document.getElementById('rejectForm');
-            form.action = '/maintenance-logs/reject/' + logId;
-            document.getElementById('rejection_reason').value = '';
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        function closeRejectModal() {
-            const modal = document.getElementById('rejectModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
-        document.getElementById('rejectModal').addEventListener('click', function(e) {
-            if (e.target === this) closeRejectModal();
-        });
-    </script>
 </x-industrial-layout>
