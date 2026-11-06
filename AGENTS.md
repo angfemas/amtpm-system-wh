@@ -162,3 +162,42 @@ Created `lang/id/` directory with:
 - Tools section contains:
   - "QR Codes" - Manage and view all QR codes
   - "Scanner" - Access QR scanner for scanning units
+
+## Railway Deployment
+
+### Deployment Files
+- `railway.json` - Railway build and deploy configuration
+- `Procfile` - Heroku-style process file for web server
+- `.railway/start.sh` - Startup script for migrations and caching
+- `RAILWAY_DEPLOYMENT.md` - Complete deployment guide
+
+### Railway Configuration
+The project is configured for Railway deployment with:
+- Builder: NIXPACKS
+- Build command: Composer install + npm install + npm run build
+- Start command: Generate key, run migrations, storage link, cache configs/routes/views, start server
+- Healthcheck: Root path with 100s timeout
+
+### Environment Variables for Railway
+Required variables for production:
+```
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://your-app.railway.app
+APP_KEY=base64:...
+APP_LOCALE=id
+APP_FALLBACK_LOCALE=en
+AMTPM_DEFAULT_ROLE=operator
+DATABASE_URL=... (provided by Railway)
+```
+
+### Deployment Steps
+1. Connect GitHub repository to Railway
+2. Configure environment variables
+3. Railway automatically builds and deploys
+4. Run database seeder to create admin user: `php artisan db:seed --class=UserSeeder`
+5. Or use setup command: `php artisan setup:admin`
+
+### See Also
+- Full deployment guide: `RAILWAY_DEPLOYMENT.md`
+- Railway CLI documentation: https://docs.railway.app
