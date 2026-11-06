@@ -19,6 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'operator' => \App\Http\Middleware\OperatorMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
+
+        // Trust proxies for Railway deployment
+        $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
