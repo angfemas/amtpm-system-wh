@@ -35,7 +35,13 @@ class PasswordResetLinkController extends Controller
 
         if (! $user) {
             throw ValidationException::withMessages([
-                'nrp' => __('NRP tidak ditemukan.'),
+                'nrp' => trans('auth.nrp_not_found'),
+            ]);
+        }
+
+        if (!$user->email) {
+            throw ValidationException::withMessages([
+                'nrp' => 'Akun dengan NRP tersebut tidak memiliki email. Tidak dapat mengirim link reset password.',
             ]);
         }
 

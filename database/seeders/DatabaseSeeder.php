@@ -15,6 +15,8 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             UnitSeeder::class,
             ChecklistItemSeeder::class,
+            HomepageSeeder::class,
+            UserSeeder::class,
         ]);
     }
 }

@@ -28,6 +28,17 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        $user = Auth::user();
+
+        // Update last login time
+        $user->last_login_at = now();
+        $user->save();
+
+        if (!$user->email_verified_at && $user->email) {
+            return redirect()->intended(route('dashboard', absolute: false))
+                ->with('warning', trans('auth.email_not_verified'));
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
@@ -42,6 +53,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect()->route('login');
     }
 }

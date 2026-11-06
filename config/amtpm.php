@@ -1,11 +1,20 @@
 <?php
 
 return [
+    /*
+    |--------------------------------------------------------------------------
+    | AMTPM System Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configuration specific to AMTPM Warehouse System
+    |
+    */
 
-    'display_name' => env('APP_DISPLAY_NAME', env('APP_NAME', 'Warehouse AMTPM System')),
+    'default_role' => env('AMTPM_DEFAULT_ROLE', 'operator'),
 
-    'reminders' => [
-        'daily_at' => env('MAINTENANCE_REMINDER_TIME', '06:30'),
+    'allowed_roles' => [
+        'admin',
+        'leader',
+        'operator',
     ],
-
 ];

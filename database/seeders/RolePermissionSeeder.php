@@ -81,9 +81,25 @@ class RolePermissionSeeder extends Seeder
             // Settings
             'settings.view',
             'settings.edit',
-            
+
+            // Homepage Management
+            'homepage.view',
+            'homepage.carousel.manage',
+            'homepage.slider.manage',
+            'homepage.flow.manage',
+            'homepage.sections.manage',
+
             // Dashboard
             'dashboard.view',
+
+            // System Administration
+            'system.view',
+            'system.users.manage',
+            'system.roles.manage',
+            'system.permissions.manage',
+            'system.sections.manage',
+            'system.activity.view',
+            'system.settings.manage',
         ];
 
         foreach ($permissions as $permission) {
@@ -96,7 +112,7 @@ class RolePermissionSeeder extends Seeder
         $operatorRole = Role::firstOrCreate(['name' => 'operator']);
 
         // Assign permissions to admin role (full access)
-        $adminRole->givePermissionTo($permissions);
+        $adminRole->syncPermissions($permissions);
 
         // Assign permissions to leader role
         $leaderPermissions = [
@@ -110,7 +126,7 @@ class RolePermissionSeeder extends Seeder
             'reports.export',
             'dashboard.view',
         ];
-        $leaderRole->givePermissionTo($leaderPermissions);
+        $leaderRole->syncPermissions($leaderPermissions);
 
         // Assign permissions to operator role
         $operatorPermissions = [
@@ -120,42 +136,6 @@ class RolePermissionSeeder extends Seeder
             'tags.create',
             'dashboard.view',
         ];
-        $operatorRole->givePermissionTo($operatorPermissions);
-
-        // Create default admin user
-        $admin = \App\Models\User::firstOrCreate([
-            'nrp' => 'admin001',
-        ], [
-            'name' => 'Administrator',
-            'email' => 'admin@warehouse-amtpm.com',
-            'password' => bcrypt('password'),
-            'email_verified_at' => now(),
-        ]);
-
-        $admin->assignRole($adminRole);
-
-        // Create default leader user
-        $leader = \App\Models\User::firstOrCreate([
-            'nrp' => 'leader001',
-        ], [
-            'name' => 'Team Leader',
-            'email' => 'leader@warehouse-amtpm.com',
-            'password' => bcrypt('password'),
-            'email_verified_at' => now(),
-        ]);
-
-        $leader->assignRole($leaderRole);
-
-        // Create default operator user
-        $operator = \App\Models\User::firstOrCreate([
-            'nrp' => 'operator001',
-        ], [
-            'name' => 'Operator',
-            'email' => 'operator@warehouse-amtpm.com',
-            'password' => bcrypt('password'),
-            'email_verified_at' => now(),
-        ]);
-
-        $operator->assignRole($operatorRole);
+        $operatorRole->syncPermissions($operatorPermissions);
     }
 }

@@ -4,9 +4,9 @@
             <div>
                 <h1 class="text-3xl font-bold text-gray-900 flex items-center">
                     <i class="bi bi-qr-code-scan mr-3 text-purple-600"></i>
-                    QR Scan
+                    {{ __('scanner.title') }}
                 </h1>
-                <p class="mt-1 text-sm text-gray-500">Operator-friendly QR scanning untuk membuka unit</p>
+                <p class="mt-1 text-sm text-gray-500">{{ __('scanner.description') }}</p>
             </div>
             <div class="flex items-center space-x-2">
                 <a href="{{ route('dashboard') }}" class="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium transition-colors">
@@ -21,15 +21,15 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
             <div class="flex items-center justify-between mb-4">
                 <div>
-                    <h2 class="text-lg font-semibold text-gray-900">QR Camera Scanner</h2>
-                    <p class="text-sm text-gray-500">Arahkan kamera ke QR code lalu tunggu deteksi otomatis.</p>
+                    <h2 class="text-lg font-semibold text-gray-900">{{ __('scanner.camera_scanner') }}</h2>
+                    <p class="text-sm text-gray-500">{{ __('scanner.camera_description') }}</p>
                 </div>
                 <div class="space-x-2">
                     <button type="button" onclick="startScan()" class="inline-flex items-center px-4 py-2 rounded-xl bg-honda-red text-white font-semibold hover:bg-red-700 transition-colors shadow-sm">
-                        <i class="bi bi-camera-fill mr-2"></i> Start
+                        <i class="bi bi-camera-fill mr-2"></i> {{ __('scanner.start') }}
                     </button>
                     <button type="button" onclick="stopScan()" class="inline-flex items-center px-4 py-2 rounded-xl bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 transition-colors shadow-sm">
-                        <i class="bi bi-stop-circle mr-2"></i> Stop
+                        <i class="bi bi-stop-circle mr-2"></i> {{ __('scanner.stop') }}
                     </button>
                 </div>
             </div>
@@ -40,38 +40,38 @@
                 <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div class="text-center text-white/80">
                         <i class="bi bi-qr-code-scan text-5xl mb-3"></i>
-                        <p class="text-sm">Tunggu deteksi QR code...</p>
+                        <p class="text-sm">{{ __('scanner.waiting_detection') }}</p>
                     </div>
                 </div>
             </div>
 
-            <p class="text-xs text-gray-500">Jika kamera tidak bisa, gunakan input manual di bawah ini.</p>
+            <p class="text-xs text-gray-500">{{ __('scanner.camera_fallback') }}</p>
         </div>
 
         <!-- Scan Form -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
             <form method="GET" action="{{ route('qr-codes.scan') }}" class="flex flex-col sm:flex-row gap-3">
                 <div class="flex-1">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Masukkan QR Code</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('scanner.manual_input_label') }}</label>
                     <input
                         type="text"
                         name="qr_code"
                         value="{{ old('qr_code', $searchQrCode ?? '') }}"
                         class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition"
-                        placeholder="Contoh: UNIT-ABC123"
+                        placeholder="{{ __('scanner.manual_input_placeholder') }}"
                         required
                     >
                 </div>
                 <button type="submit" class="touch-target inline-flex items-center justify-center px-6 py-3 rounded-xl bg-honda-red text-white font-semibold hover:bg-red-700 transition-colors shadow-sm">
                     <i class="bi bi-qr-code-scan mr-2"></i>
-                    Scan
+                    {{ __('scanner.scan_button') }}
                 </button>
             </form>
         </div>
 
         @if(isset($searchQrCode) && empty($unit))
             <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-xl">
-                <p class="text-sm text-yellow-700">QR code "{{ $searchQrCode }}" tidak ditemukan. Silakan coba lagi atau gunakan kamera.</p>
+                <p class="text-sm text-yellow-700">{{ __('scanner.not_found', ['code' => $searchQrCode]) }}</p>
             </div>
         @endif
     @endunless
@@ -85,7 +85,7 @@
                         <i class="bi bi-truck text-purple-700 text-2xl"></i>
                     </div>
                     <div class="min-w-0">
-                        <div class="text-xs uppercase tracking-wider text-gray-500 font-semibold">Unit Ditemukan</div>
+                        <div class="text-xs uppercase tracking-wider text-gray-500 font-semibold">{{ __('scanner.unit_found') }}</div>
                         <h2 class="text-xl sm:text-2xl font-bold text-gray-900 truncate">{{ $unit->nama_unit }}</h2>
                         <div class="mt-1 text-sm text-gray-600">
                             <span class="font-semibold text-gray-900 font-mono">{{ $unit->kode_unit }}</span>
@@ -101,29 +101,29 @@
                 <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
                     <a href="{{ route('units.show', $unit) }}" class="flex items-center justify-center px-5 py-3 rounded-xl font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors shadow-sm">
                         <i class="bi bi-eye mr-2"></i>
-                        Lihat Detail
+                        {{ __('scanner.view_detail') }}
                     </a>
                     <a
                         href="{{ route('maintenance-logs.create', ['unit_id' => $unit->id]) }}"
                         class="flex items-center justify-center px-5 py-3 rounded-xl font-semibold bg-honda-red hover:bg-red-700 text-white transition-colors shadow-sm"
                     >
                         <i class="bi bi-file-earmark-check mr-2"></i>
-                        Isi Checklist
+                        {{ __('scanner.fill_checklist') }}
                     </a>
                 </div>
             </div>
 
             <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                    <div class="text-sm text-gray-600">Kilometer</div>
+                    <div class="text-sm text-gray-600">{{ __('scanner.kilometer') }}</div>
                     <div class="mt-1 text-lg font-bold text-gray-900">{{ $unit->kilometer ?? '-' }}</div>
                 </div>
                 <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                    <div class="text-sm text-gray-600">Hour Meter</div>
+                    <div class="text-sm text-gray-600">{{ __('scanner.hour_meter') }}</div>
                     <div class="mt-1 text-lg font-bold text-gray-900">{{ $unit->hour_meter ?? '-' }}</div>
                 </div>
                 <div class="p-4 bg-gray-50 rounded-xl border border-gray-100">
-                    <div class="text-sm text-gray-600">Next Due</div>
+                    <div class="text-sm text-gray-600">{{ __('scanner.next_due') }}</div>
                     <div class="mt-1 text-lg font-bold text-gray-900">
                         {{ $unit->maintenance_due_date ? $unit->maintenance_due_date->format('d M Y') : '-' }}
                     </div>
@@ -131,6 +131,10 @@
             </div>
         </div>
     @endisset
+
+@php
+$scannerConfig = config('scanner');
+@endphp
 
 <script>
     let qrWorker = null;
@@ -143,7 +147,7 @@
             return qrWorker;
         }
 
-        qrWorker = new Worker('/js/qr-scanner-worker.js');
+        qrWorker = new Worker('{{ $scannerConfig['worker_script'] }}');
         qrWorker.onmessage = function(event) {
             if (!scanActive) {
                 return;
@@ -153,7 +157,7 @@
             if (success && data) {
                 scanActive = false;
                 stopScan();
-                window.location.href = `/scan?qr_code=${encodeURIComponent(data)}`;
+                window.location.href = `{{ route('qr-codes.scan') }}?qr_code=${encodeURIComponent(data)}`;
             }
         };
 
@@ -166,24 +170,24 @@
         }
 
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            showNotification('warning', 'Kamera tidak tersedia di perangkat ini.');
+            showNotification('warning', '{{ __('scanner.camera_not_available') }}');
             return;
         }
 
         const video = document.getElementById('qr-video');
         const canvas = document.getElementById('qr-canvas');
         const ctx = canvas.getContext('2d');
-        const scanWidth = 320;
-        const scanHeight = 240;
+        const scanWidth = {{ $scannerConfig['scan_width'] }};
+        const scanHeight = {{ $scannerConfig['scan_height'] }};
 
         canvas.width = scanWidth;
         canvas.height = scanHeight;
 
         navigator.mediaDevices.getUserMedia({
             video: {
-                facingMode: 'environment',
-                width: { ideal: 640 },
-                height: { ideal: 480 }
+                facingMode: '{{ $scannerConfig['facing_mode'] }}',
+                width: { ideal: {{ $scannerConfig['camera_width'] }} },
+                height: { ideal: {{ $scannerConfig['camera_height'] }} }
             }
         })
         .then(stream => {
@@ -193,10 +197,10 @@
             scanActive = true;
             ensureQrWorker();
             scanFrame();
-            showNotification('success', 'Kamera aktif. Arahkan ke QR code.');
+            showNotification('success', '{{ __('scanner.camera_active') }}');
         })
         .catch(() => {
-            showNotification('error', 'Akses kamera ditolak.');
+            showNotification('error', '{{ __('scanner.camera_access_denied') }}');
         });
     }
 
@@ -221,7 +225,7 @@
             // ignore frame errors and continue scanning
         }
 
-        scanTimer = setTimeout(scanFrame, 120);
+        scanTimer = setTimeout(scanFrame, {{ $scannerConfig['scan_interval'] }});
     }
 
     function stopScan() {

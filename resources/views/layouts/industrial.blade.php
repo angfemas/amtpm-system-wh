@@ -144,15 +144,42 @@
                 </div>
 
                 @if(Route::has('qr-codes.index'))
-                <a href="{{ route('qr-codes.index') }}" 
+                <a href="{{ route('qr-codes.index') }}"
                    class="nav-item group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200
-                          {{ request()->routeIs('qr-codes.*') 
-                              ? 'bg-purple-50 text-purple-700 border-l-4 border-purple-600' 
+                          {{ request()->routeIs('qr-codes.index')
+                              ? 'bg-purple-50 text-purple-700 border-l-4 border-purple-600'
                               : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
-                    <i class="bi bi-qr-code text-lg mr-3 {{ request()->routeIs('qr-codes.*') ? 'text-purple-600' : 'text-gray-400 group-hover:text-gray-600' }}"></i>
+                    <i class="bi bi-qr-code text-lg mr-3 {{ request()->routeIs('qr-codes.index') ? 'text-purple-600' : 'text-gray-400 group-hover:text-gray-600' }}"></i>
                     <span>QR Codes</span>
                 </a>
                 @endif
+
+                @if(Route::has('qr-codes.scan'))
+                <a href="{{ route('qr-codes.scan') }}"
+                   class="nav-item group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200
+                          {{ request()->routeIs('qr-codes.scan')
+                              ? 'bg-purple-50 text-purple-700 border-l-4 border-purple-600'
+                              : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
+                    <i class="bi bi-qr-code-scan text-lg mr-3 {{ request()->routeIs('qr-codes.scan') ? 'text-purple-600' : 'text-gray-400 group-hover:text-gray-600' }}"></i>
+                    <span>Scanner</span>
+                </a>
+                @endif
+
+                <!-- System Administration Section -->
+                @can('system.view')
+                <div class="pt-4 pb-2">
+                    <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">System Administration</p>
+                </div>
+
+                <a href="{{ route('admin.system.dashboard') }}"
+                   class="nav-item group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200
+                          {{ request()->routeIs('admin.system.*')
+                              ? 'bg-purple-50 text-purple-700 border-l-4 border-purple-600'
+                              : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900' }}">
+                    <i class="bi bi-gear-fill text-lg mr-3 {{ request()->routeIs('admin.system.*') ? 'text-purple-600' : 'text-gray-400 group-hover:text-gray-600' }}"></i>
+                    <span>Admin Panel</span>
+                </a>
+                @endcan
 
                 <!-- Reports Section -->
                 <div class="pt-4 pb-2">

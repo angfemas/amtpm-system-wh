@@ -3,19 +3,62 @@
 namespace App\Http\Controllers;
 
 use App\Models\Unit;
+use App\Models\UnitCategory;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use SimpleSoftwareIO\QrCode as QRCodeFacade;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 class QRCodeController extends Controller
 {
+    /**
+     * Display QR codes management page
+     */
+    public function index(Request $request): View
+    {
+        $query = Unit::with('unitCategory');
+
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('kode_unit', 'like', "%{$search}%")
+                  ->orWhere('nama_unit', 'like', "%{$search}%")
+                  ->orWhere('nomor_urut', 'like', "%{$search}%");
+            });
+        }
+
+        // Category filter
+        if ($request->filled('category_id')) {
+            $query->where('unit_category_id', $request->input('category_id'));
+        }
+
+        $units = $query->orderBy('nomor_urut')->orderBy('nama_unit')->paginate(24);
+
+        // Get categories for filter
+        $categories = UnitCategory::where('is_active', true)
+            ->orderBy('name')
+            ->pluck('name', 'id');
+
+        // Generate QR codes for all units
+        $qrCodes = [];
+        foreach ($units as $unit) {
+            $qrCodes[$unit->id] = QrCode::format('svg')
+                ->size(128)
+                ->margin(1)
+                ->generate($unit->qr_code);
+        }
+
+        return view('qr-codes.index', compact('units', 'categories', 'qrCodes'));
+    }
+
     /**
      * Generate QR code for a unit
      */
     public function generate(Unit $unit): Response
     {
-        $qrCode = QRCodeFacade::format('png')
+        $qrCode = QrCode::format('png')
             ->size(300)
             ->margin(2)
             ->generate($unit->qr_code);
@@ -32,7 +75,7 @@ class QRCodeController extends Controller
      */
     public function download(Unit $unit): Response
     {
-        $qrCode = QRCodeFacade::format('png')
+        $qrCode = QrCode::format('png')
             ->size(300)
             ->margin(2)
             ->generate($unit->qr_code);

@@ -26,6 +26,9 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
+            'profile_photo' => ['nullable', 'image', 'max:5120'], // Max 5MB
+            'section' => ['nullable', 'string', 'in:' . implode(',', array_keys(config('sections.sections')))],
+            'notification_enabled' => ['nullable', 'boolean'],
         ];
     }
 }

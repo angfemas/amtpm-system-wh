@@ -68,16 +68,16 @@ class WarehouseAreaController extends Controller
             }
             
             $area = WarehouseArea::create($validated);
-            
+
             return redirect()
                 ->route('warehouse-areas.index')
-                ->with('success', "Area warehouse '{$area->name}' berhasil ditambahkan.");
-                
+                ->with('success', trans('warehouse.area.created', ['name' => $area->name]));
+
         } catch (\Exception $e) {
             return redirect()
                 ->back()
                 ->withInput()
-                ->with('error', 'Gagal menambahkan area warehouse. Silakan coba lagi.');
+                ->with('error', trans('warehouse.area.create_failed'));
         }
     }
     
@@ -119,16 +119,16 @@ class WarehouseAreaController extends Controller
         try {
             $validated = $request->validated();
             $warehouseArea->update($validated);
-            
+
             return redirect()
                 ->route('warehouse-areas.index')
-                ->with('success', "Area warehouse '{$warehouseArea->name}' berhasil diperbarui.");
-                
+                ->with('success', trans('warehouse.area.updated', ['name' => $warehouseArea->name]));
+
         } catch (\Exception $e) {
             return redirect()
                 ->back()
                 ->withInput()
-                ->with('error', 'Gagal memperbarui area warehouse. Silakan coba lagi.');
+                ->with('error', trans('warehouse.area.update_failed'));
         }
     }
 
@@ -140,7 +140,7 @@ class WarehouseAreaController extends Controller
         try {
             // Check if area has units
             if ($warehouseArea->units()->count() > 0) {
-                $message = "Tidak dapat menghapus area '{$warehouseArea->name}' karena masih memiliki unit terkait.";
+                $message = trans('warehouse.area.has_units', ['name' => $warehouseArea->name]);
                 if (request()->wantsJson()) {
                     return response()->json(['success' => false, 'message' => $message], 422);
                 }
@@ -148,18 +148,18 @@ class WarehouseAreaController extends Controller
                     ->route('warehouse-areas.index')
                     ->with('error', $message);
             }
-            
+
             $warehouseArea->delete();
-            $message = "Area warehouse '{$warehouseArea->name}' berhasil dihapus.";
+            $message = trans('warehouse.area.deleted', ['name' => $warehouseArea->name]);
             if (request()->wantsJson()) {
                 return response()->json(['success' => true, 'message' => $message, 'data' => $warehouseArea], 200);
             }
             return redirect()
                 ->route('warehouse-areas.index')
                 ->with('success', $message);
-                
+
         } catch (\Exception $e) {
-            $message = 'Gagal menghapus area warehouse. Silakan coba lagi.';
+            $message = trans('warehouse.area.delete_failed');
             if (request()->wantsJson()) {
                 return response()->json(['success' => false, 'message' => $message], 500);
             }
@@ -178,17 +178,17 @@ class WarehouseAreaController extends Controller
             $warehouseArea->update([
                 'is_active' => !$warehouseArea->is_active
             ]);
-            
+
             $status = $warehouseArea->is_active ? 'diaktifkan' : 'dinonaktifkan';
-            
+
             return redirect()
                 ->route('warehouse-areas.index')
-                ->with('success', "Area warehouse '{$warehouseArea->name}' berhasil {$status}.");
-                
+                ->with('success', trans('warehouse.area.status_changed', ['name' => $warehouseArea->name, 'status' => $status]));
+
         } catch (\Exception $e) {
             return redirect()
                 ->route('warehouse-areas.index')
-                ->with('error', 'Gagal mengubah status area warehouse. Silakan coba lagi.');
+                ->with('error', trans('warehouse.area.status_change_failed'));
         }
     }
 }

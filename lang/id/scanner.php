@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'title' => 'QR Scan',
+    'description' => 'Operator-friendly QR scanning untuk membuka unit',
+    'camera_scanner' => 'QR Camera Scanner',
+    'camera_description' => 'Arahkan kamera ke QR code lalu tunggu deteksi otomatis.',
+    'start' => 'Start',
+    'stop' => 'Stop',
+    'waiting_detection' => 'Tunggu deteksi QR code...',
+    'camera_fallback' => 'Jika kamera tidak bisa, gunakan input manual di bawah ini.',
+    'manual_input_label' => 'Masukkan QR Code',
+    'manual_input_placeholder' => 'Contoh: UNIT-ABC123',
+    'scan_button' => 'Scan',
+    'not_found' => 'QR code ":code" tidak ditemukan. Silakan coba lagi atau gunakan kamera.',
+    'unit_found' => 'Unit Ditemukan',
+    'view_detail' => 'Lihat Detail',
+    'fill_checklist' => 'Isi Checklist',
+    'kilometer' => 'Kilometer',
+    'hour_meter' => 'Hour Meter',
+    'next_due' => 'Next Due',
+    'camera_not_available' => 'Kamera tidak tersedia di perangkat ini.',
+    'camera_active' => 'Kamera aktif. Arahkan ke QR code.',
+    'camera_access_denied' => 'Akses kamera ditolak.',
+];
