@@ -38,23 +38,29 @@ AMTPM_DEFAULT_ROLE=operator
 ```
 
 #### Database Configuration
-Railway MySQL service provides `MYSQL_*` variables. You need to copy these from the MySQL service to your web service.
+Railway MySQL service provides database credentials. You need to copy these and add them as standard Laravel `DB_*` variables to your web service.
 
 **Steps:**
 1. Add a MySQL Database service in Railway
 2. Go to the MySQL service → tab "Variables"
-3. Copy these variables:
-   - `MYSQLHOST`
-   - `MYSQLPORT`
-   - `MYSQLDATABASE`
-   - `MYSQLUSER`
-   - `MYSQLPASSWORD`
+3. Copy these values:
+   - `MYSQLHOST` → will be `DB_HOST`
+   - `MYSQLPORT` → will be `DB_PORT`
+   - `MYSQLDATABASE` → will be `DB_DATABASE`
+   - `MYSQLUSER` → will be `DB_USERNAME`
+   - `MYSQLPASSWORD` → will be `DB_PASSWORD`
 4. Go to your web service → tab "Variables"
-5. Add the same variables with the same values
-6. The AppServiceProvider will automatically use these to configure the database connection
-
-**Alternative:**
-If Railway provides `DATABASE_URL`, you can also use that. The AppServiceProvider supports both formats.
+5. Add these Laravel standard variables:
+   ```
+   DB_CONNECTION=mysql
+   DB_HOST=mysql.railway.internal
+   DB_PORT=3306
+   DB_DATABASE=railway
+   DB_USERNAME=root
+   DB_PASSWORD=your_password_here
+   ```
+6. Replace values with actual values from MySQL service
+7. The AppServiceProvider will automatically use these to configure the database connection
 
 #### Optional Variables
 ```

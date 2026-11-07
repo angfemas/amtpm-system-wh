@@ -22,8 +22,20 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Configure database connection from Railway MySQL service
-        // Railway provides MYSQL_* variables for MySQL service
-        if (env('MYSQLHOST') && env('MYSQLDATABASE')) {
+        // Priority: DB_* variables > MYSQL_* variables > DATABASE_URL
+        if (env('DB_HOST') && env('DB_DATABASE')) {
+            // Use standard Laravel DB_* variables (highest priority)
+            config([
+                'database.default' => env('DB_CONNECTION', 'mysql'),
+                'database.connections.mysql.host' => env('DB_HOST'),
+                'database.connections.mysql.port' => env('DB_PORT', '3306'),
+                'database.connections.mysql.database' => env('DB_DATABASE'),
+                'database.connections.mysql.username' => env('DB_USERNAME', env('DB_USER', 'root')),
+                'database.connections.mysql.password' => env('DB_PASSWORD'),
+            ]);
+        }
+        elseif (env('MYSQLHOST') && env('MYSQLDATABASE')) {
+            // Use Railway MySQL service MYSQL_* variables
             config([
                 'database.default' => 'mysql',
                 'database.connections.mysql.host' => env('MYSQLHOST'),
@@ -33,15 +45,13 @@ class AppServiceProvider extends ServiceProvider
                 'database.connections.mysql.password' => env('MYSQLPASSWORD'),
             ]);
         }
-        // Fallback to DATABASE_URL (standard format)
         elseif ($databaseUrl = env('DATABASE_URL')) {
+            // Fallback to DATABASE_URL (standard format)
             $url = parse_url($databaseUrl);
 
             if ($url) {
-                // Determine database type from scheme
                 $scheme = $url['scheme'] ?? 'mysql';
 
-                // Configure database connection directly
                 config([
                     'database.default' => $scheme === 'postgresql' || $scheme === 'postgres' ? 'pgsql' : 'mysql',
                     'database.connections.' . ($scheme === 'postgresql' || $scheme === 'postgres' ? 'pgsql' : 'mysql') . '.host' => $url['host'] ?? '127.0.0.1',
