@@ -163,6 +163,137 @@ Created `lang/id/` directory with:
   - "QR Codes" - Manage and view all QR codes
   - "Scanner" - Access QR scanner for scanning units
 
+## Homepage Management System
+
+### Homepage Features
+The system includes a comprehensive homepage management system with the following components:
+
+### Homepage Components
+
+#### 1. Carousel Items
+- **Model**: `HomepageCarouselItem`
+- **Controller**: `HomepageCarouselController`
+- **Features**:
+  - Upload carousel images with title and description
+  - Set caption position (top, bottom, left, right)
+  - Order and manage carousel items
+  - Toggle active/inactive status
+- **Routes**: `/admin/homepage/carousel/*`
+- **Permission**: `homepage.carousel.manage`
+
+#### 2. Slider Rotate Items (4 Pillars)
+- **Model**: `HomepageSliderRotateItem`
+- **Controller**: `HomepageSliderRotateController`
+- **Features**:
+  - Manage the 4 pillars of AMTPM (Cleaning, Tightening, Lubrication, Inspection)
+  - Upload icons and descriptions
+  - Set display order
+- **Routes**: `/admin/homepage/slider-rotate/*`
+- **Permission**: `homepage.slider.manage`
+
+#### 3. Flow Process Items
+- **Model**: `HomepageFlowProcessItem`
+- **Controller**: `HomepageFlowProcessController`
+- **Features**:
+  - Manage process flow steps (Planning, Execution, Monitoring, Evaluation)
+  - Upload images for each step
+  - Set display order
+- **Routes**: `/admin/homepage/flow-process/*`
+- **Permission**: `homepage.flow.manage`
+
+#### 4. Sections
+- **Model**: `HomepageSection`
+- **Controller**: `HomepageSectionController`
+- **Features**:
+  - Manage homepage sections with custom content
+  - Set background colors and text colors
+  - Upload section images
+  - Configure section order
+- **Routes**: `/admin/homepage/sections/*`
+- **Permission**: `homepage.sections.manage`
+
+### Homepage Management Routes
+- `GET /admin/homepage` - Homepage management dashboard
+- Carousel: `/admin/homepage/carousel/*` (index, create, store, edit, update, destroy)
+- Slider Rotate: `/admin/homepage/slider-rotate/*` (index, create, store, edit, update, destroy)
+- Flow Process: `/admin/homepage/flow-process/*` (index, create, store, edit, update, destroy)
+- Sections: `/admin/homepage/sections/*` (index, create, store, edit, update, destroy)
+
+### Homepage Permissions
+- `homepage.view` - View homepage management dashboard
+- `homepage.carousel.manage` - Manage carousel items
+- `homepage.slider.manage` - Manage slider rotate items
+- `homepage.flow.manage` - Manage flow process items
+- `homepage.sections.manage` - Manage sections
+
+### Homepage Seeder
+- **Seeder**: `HomepageSeeder`
+- **Function**: Seeds default homepage content (carousel items, 4 pillars, flow process, sections)
+- **Run**: `php artisan db:seed --class=HomepageSeeder`
+
+### Sidebar Navigation
+- Homepage dropdown contains:
+  - "Carousel" - Manage homepage carousel items
+  - "4 Pillars" - Manage rotating slider items
+  - "Flow Process" - Manage process flow steps
+  - "Sections" - Manage page sections
+
+## Logo Management System
+
+### Logo Features
+The system includes a logo management system for managing application logos:
+
+### Logo Components
+
+#### App Logo Model
+- **Model**: `AppLogo`
+- **Controller**: `SystemAdminController` (logo methods)
+- **Features**:
+  - Upload and manage different logo types (default, favicon, small, large)
+  - Set alt text for accessibility
+  - Configure logo dimensions (width, height)
+  - Toggle active/inactive status
+  - Multiple logo types supported
+
+### Logo Management Routes
+- `GET /admin/system/logo` - Logo management index
+- `GET /admin/system/logo/create` - Create new logo
+- `POST /admin/system/logo` - Store new logo
+- `GET /admin/system/logo/{logo}/edit` - Edit logo
+- `PUT /admin/system/logo/{logo}` - Update logo
+- `DELETE /admin/system/logo/{logo}` - Delete logo
+
+### Logo Permissions
+- `system.logo.manage` - Manage application logos
+
+### Logo Fields
+- `logo_type`: Type of logo (default, favicon, small, large)
+- `image_path`: Path to uploaded logo image
+- `alt_text`: Alternative text for accessibility
+- `width`: Display width in pixels
+- `height`: Display height in pixels
+- `is_active`: Active status for display
+
+### Logo Storage
+- **Disk**: `public`
+- **Path**: `logos/`
+- **Supported formats**: JPEG, PNG, JPG, GIF, WebP, SVG
+- **Max file size**: 5MB
+- **Image compression**: Applied automatically via `ImageCompressionService`
+
+### Sidebar Navigation
+- System Admin dropdown contains:
+  - "Logo" - Manage application logos
+
+### Getting Active Logo
+```php
+// Get active logo by type
+$logo = AppLogo::getActiveLogo('default');
+
+// Get logo URL
+$url = $logo->image_url;
+```
+
 ## Railway Deployment
 
 ### Deployment Files

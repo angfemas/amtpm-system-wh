@@ -100,6 +100,7 @@ class RolePermissionSeeder extends Seeder
             'system.sections.manage',
             'system.activity.view',
             'system.settings.manage',
+            'system.logo.manage',
         ];
 
         foreach ($permissions as $permission) {

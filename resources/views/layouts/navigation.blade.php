@@ -96,6 +96,12 @@
                             <x-dropdown-link :href="route('admin.system.settings.index')">
                                 <i class="bi bi-sliders me-2"></i>Settings
                             </x-dropdown-link>
+
+                            @can('system.logo.manage')
+                            <x-dropdown-link :href="route('admin.system.logo.index')">
+                                <i class="bi bi-image me-2"></i>Logo
+                            </x-dropdown-link>
+                            @endcan
                         </x-slot>
                     </x-dropdown>
                     @endcan
@@ -199,6 +205,12 @@
             @can('system.settings.manage')
             <x-responsive-nav-link :href="route('admin.system.settings.index')">
                 Settings
+            </x-responsive-nav-link>
+            @endcan
+
+            @can('system.logo.manage')
+            <x-responsive-nav-link :href="route('admin.system.logo.index')">
+                Logo
             </x-responsive-nav-link>
             @endcan
             @endcan

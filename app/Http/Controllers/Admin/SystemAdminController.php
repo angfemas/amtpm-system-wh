@@ -3,17 +3,27 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AppLogo;
 use App\Models\User;
+use App\Services\ImageCompressionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class SystemAdminController extends Controller
 {
+    protected ImageCompressionService $imageCompression;
+
+    public function __construct(ImageCompressionService $imageCompression)
+    {
+        $this->imageCompression = $imageCompression;
+    }
+
     /**
      * Admin Dashboard
      */
@@ -406,5 +416,113 @@ class SystemAdminController extends Controller
         }
 
         file_put_contents(base_path('.env'), $envContent);
+    }
+
+    // ==================== LOGO MANAGEMENT ====================
+
+    public function logoIndex()
+    {
+        $logos = AppLogo::all();
+        return view('admin.system.logo.index', compact('logos'));
+    }
+
+    public function logoCreate()
+    {
+        return view('admin.system.logo.create');
+    }
+
+    public function logoStore(Request $request)
+    {
+        $validated = $request->validate([
+            'logo_type' => 'required|string|max:50',
+            'image_path' => 'required|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
+            'alt_text' => 'nullable|string|max:255',
+            'width' => 'nullable|integer|min:10|max:2000',
+            'height' => 'nullable|integer|min:10|max:2000',
+            'is_active' => 'boolean',
+        ]);
+
+        $data = [
+            'logo_type' => $validated['logo_type'],
+            'alt_text' => $validated['alt_text'] ?? null,
+            'width' => $validated['width'] ?? null,
+            'height' => $validated['height'] ?? null,
+            'is_active' => $validated['is_active'] ?? true,
+        ];
+
+        if ($request->hasFile('image_path')) {
+            $imagePath = $this->imageCompression->compressAndStore(
+                $request->file('image_path'),
+                'logos',
+                'public'
+            );
+            $data['image_path'] = $imagePath;
+        }
+
+        AppLogo::create($data);
+
+        Log::info('Logo created by admin', ['logo_type' => $data['logo_type'], 'created_by' => auth()->id()]);
+
+        return redirect()->route('admin.system.logo.index')
+            ->with('success', 'Logo created successfully.');
+    }
+
+    public function logoEdit(AppLogo $logo)
+    {
+        return view('admin.system.logo.edit', compact('logo'));
+    }
+
+    public function logoUpdate(Request $request, AppLogo $logo)
+    {
+        $validated = $request->validate([
+            'logo_type' => 'required|string|max:50',
+            'image_path' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,svg|max:5120',
+            'alt_text' => 'nullable|string|max:255',
+            'width' => 'nullable|integer|min:10|max:2000',
+            'height' => 'nullable|integer|min:10|max:2000',
+            'is_active' => 'boolean',
+        ]);
+
+        $data = [
+            'logo_type' => $validated['logo_type'],
+            'alt_text' => $validated['alt_text'] ?? $logo->alt_text,
+            'width' => $validated['width'] ?? $logo->width,
+            'height' => $validated['height'] ?? $logo->height,
+            'is_active' => $validated['is_active'] ?? $logo->is_active,
+        ];
+
+        if ($request->hasFile('image_path')) {
+            if ($logo->image_path) {
+                Storage::disk('public')->delete($logo->image_path);
+            }
+
+            $imagePath = $this->imageCompression->compressAndStore(
+                $request->file('image_path'),
+                'logos',
+                'public'
+            );
+            $data['image_path'] = $imagePath;
+        }
+
+        $logo->update($data);
+
+        Log::info('Logo updated by admin', ['logo_id' => $logo->id, 'updated_by' => auth()->id()]);
+
+        return redirect()->route('admin.system.logo.index')
+            ->with('success', 'Logo updated successfully.');
+    }
+
+    public function logoDestroy(AppLogo $logo)
+    {
+        if ($logo->image_path) {
+            Storage::disk('public')->delete($logo->image_path);
+        }
+
+        $logo->delete();
+
+        Log::info('Logo deleted by admin', ['logo_id' => $logo->id, 'deleted_by' => auth()->id()]);
+
+        return redirect()->route('admin.system.logo.index')
+            ->with('success', 'Logo deleted successfully.');
     }
 }

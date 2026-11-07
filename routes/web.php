@@ -120,7 +120,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // System Administration Routes
-    Route::prefix('admin/system')->name('admin.system.')->middleware('permission:system.view|system.users.manage|system.roles.manage|system.permissions.manage|system.sections.manage|system.activity.view|system.settings.manage')->group(function () {
+    Route::prefix('admin/system')->name('admin.system.')->middleware('permission:system.view|system.users.manage|system.roles.manage|system.permissions.manage|system.sections.manage|system.activity.view|system.settings.manage|system.logo.manage')->group(function () {
         // Dashboard
         Route::get('dashboard', [SystemAdminController::class, 'dashboard'])->name('dashboard')->middleware('permission:system.view');
 
@@ -160,6 +160,14 @@ Route::middleware('auth')->group(function () {
         // Settings Management
         Route::get('settings', [SystemAdminController::class, 'settingsIndex'])->name('settings.index')->middleware('permission:system.settings.manage');
         Route::put('settings', [SystemAdminController::class, 'settingsUpdate'])->name('settings.update')->middleware('permission:system.settings.manage');
+
+        // Logo Management
+        Route::get('logo', [SystemAdminController::class, 'logoIndex'])->name('logo.index')->middleware('permission:system.logo.manage');
+        Route::get('logo/create', [SystemAdminController::class, 'logoCreate'])->name('logo.create')->middleware('permission:system.logo.manage');
+        Route::post('logo', [SystemAdminController::class, 'logoStore'])->name('logo.store')->middleware('permission:system.logo.manage');
+        Route::get('logo/{logo}/edit', [SystemAdminController::class, 'logoEdit'])->name('logo.edit')->middleware('permission:system.logo.manage');
+        Route::put('logo/{logo}', [SystemAdminController::class, 'logoUpdate'])->name('logo.update')->middleware('permission:system.logo.manage');
+        Route::delete('logo/{logo}', [SystemAdminController::class, 'logoDestroy'])->name('logo.destroy')->middleware('permission:system.logo.manage');
     });
 });
 
