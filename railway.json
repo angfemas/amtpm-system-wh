@@ -2,9 +2,10 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "composer install --no-dev --optimize-autoloader && npm install && npm run build",
+    "buildCommand": "composer install --no-dev --optimize-autoloader && npm ci && npm run build",
     "buildEnv": {
-      "NIXPACKS_NODE_VERSION": "20"
+      "NIXPACKS_NODE_VERSION": "20",
+      "ASSET_URL": "https://web-production-18a563.up.railway.app"
     },
     "watchPatterns": [
       "**"
