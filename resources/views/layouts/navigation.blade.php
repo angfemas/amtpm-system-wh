@@ -16,7 +16,7 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
 
-                    @can('homepage.carousel.manage')
+                    @canany(['homepage.view', 'homepage.carousel.manage', 'homepage.slider.manage', 'homepage.flow.manage', 'homepage.sections.manage'])
                     <x-dropdown align="left" width="48">
                         <x-slot name="trigger">
                             <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 hover:text-gray-700 focus:outline-none transition">
@@ -29,6 +29,12 @@
                         </x-slot>
 
                         <x-slot name="content">
+                            @can('homepage.view')
+                            <x-dropdown-link :href="route('admin.homepage.index')">
+                                <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                            </x-dropdown-link>
+                            @endcan
+
                             @can('homepage.carousel.manage')
                             <x-dropdown-link :href="route('admin.homepage.carousel.index')">
                                 <i class="bi bi-sliders me-2"></i>Carousel
@@ -54,7 +60,7 @@
                             @endcan
                         </x-slot>
                     </x-dropdown>
-                    @endcan
+                    @endcanany
 
                     @can('system.view')
                     <x-dropdown align="left" width="48">
@@ -160,6 +166,42 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+
+            @canany(['homepage.view', 'homepage.carousel.manage', 'homepage.slider.manage', 'homepage.flow.manage', 'homepage.sections.manage'])
+            <div class="px-4 pt-4 pb-2 border-t border-gray-200">
+                <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Homepage</div>
+            </div>
+
+            @can('homepage.view')
+            <x-responsive-nav-link :href="route('admin.homepage.index')">
+                Dashboard
+            </x-responsive-nav-link>
+            @endcan
+
+            @can('homepage.carousel.manage')
+            <x-responsive-nav-link :href="route('admin.homepage.carousel.index')">
+                Carousel
+            </x-responsive-nav-link>
+            @endcan
+
+            @can('homepage.slider.manage')
+            <x-responsive-nav-link :href="route('admin.homepage.slider-rotate.index')">
+                4 Pillars
+            </x-responsive-nav-link>
+            @endcan
+
+            @can('homepage.flow.manage')
+            <x-responsive-nav-link :href="route('admin.homepage.flow-process.index')">
+                Flow Process
+            </x-responsive-nav-link>
+            @endcan
+
+            @can('homepage.sections.manage')
+            <x-responsive-nav-link :href="route('admin.homepage.sections.index')">
+                Sections
+            </x-responsive-nav-link>
+            @endcan
+            @endcanany
 
             @can('system.view')
             <div class="px-4 pt-4 pb-2 border-t border-gray-200">
