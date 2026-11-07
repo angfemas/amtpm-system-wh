@@ -38,19 +38,23 @@ AMTPM_DEFAULT_ROLE=operator
 ```
 
 #### Database Configuration
-Railway automatically provides `DATABASE_URL` from the database service. The app will automatically parse this URL and configure database connection.
-
-**IMPORTANT:**
-- DO NOT manually set `DB_CONNECTION` in Railway Variables
-- DO NOT manually set `DATABASE_URL` in Railway Variables
-- Railway will automatically inject `DATABASE_URL` when you link a database service
-- The AppServiceProvider will parse `DATABASE_URL` and configure the database connection
+Railway MySQL service provides `MYSQL_*` variables. You need to copy these from the MySQL service to your web service.
 
 **Steps:**
-1. Add a Database service (MySQL or PostgreSQL) in Railway
-2. Railway will automatically link it to your web service
-3. Railway will automatically inject `DATABASE_URL` environment variable
-4. Do NOT modify or delete the auto-generated `DATABASE_URL`
+1. Add a MySQL Database service in Railway
+2. Go to the MySQL service → tab "Variables"
+3. Copy these variables:
+   - `MYSQLHOST`
+   - `MYSQLPORT`
+   - `MYSQLDATABASE`
+   - `MYSQLUSER`
+   - `MYSQLPASSWORD`
+4. Go to your web service → tab "Variables"
+5. Add the same variables with the same values
+6. The AppServiceProvider will automatically use these to configure the database connection
+
+**Alternative:**
+If Railway provides `DATABASE_URL`, you can also use that. The AppServiceProvider supports both formats.
 
 #### Optional Variables
 ```

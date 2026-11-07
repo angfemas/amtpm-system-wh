@@ -21,8 +21,20 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Parse DATABASE_URL from Railway and configure database connection
-        if ($databaseUrl = env('DATABASE_URL')) {
+        // Configure database connection from Railway MySQL service
+        // Railway provides MYSQL_* variables for MySQL service
+        if (env('MYSQLHOST') && env('MYSQLDATABASE')) {
+            config([
+                'database.default' => 'mysql',
+                'database.connections.mysql.host' => env('MYSQLHOST'),
+                'database.connections.mysql.port' => env('MYSQLPORT', '3306'),
+                'database.connections.mysql.database' => env('MYSQLDATABASE'),
+                'database.connections.mysql.username' => env('MYSQLUSER', 'root'),
+                'database.connections.mysql.password' => env('MYSQLPASSWORD'),
+            ]);
+        }
+        // Fallback to DATABASE_URL (standard format)
+        elseif ($databaseUrl = env('DATABASE_URL')) {
             $url = parse_url($databaseUrl);
 
             if ($url) {
