@@ -136,12 +136,28 @@ After running seeder, you can login with:
 - Password: `Op3rat0r@Work2024`
 
 ### 7. Storage Configuration
-For file uploads to work properly, you may want to use a cloud storage service:
-- AWS S3 (recommended for production)
-- Cloudflare R2
-- Backblaze B2
+For file uploads to work properly, you need to handle file storage in production.
 
-Configure AWS S3 in environment variables:
+**Note:** Files uploaded locally will NOT automatically appear in Railway production because Railway uses a different filesystem.
+
+#### Option 1: Use Railway Volumes (Recommended for Simple Setup)
+Railway Volumes provide persistent storage for your application.
+
+1. In Railway dashboard, click your web service
+2. Go to "Settings" → "Volumes"
+3. Click "Add Volume"
+4. Name it: `storage`
+5. Mount path: `/app/storage`
+6. Add more volumes as needed:
+   - `storage/app` for app storage
+   - `storage/app/public` for public files
+
+After adding volumes, redeploy and your uploaded files will persist.
+
+#### Option 2: Use Cloud Storage (Recommended for Production)
+Use AWS S3, Cloudflare R2, or similar for scalable file storage.
+
+**AWS S3 Configuration:**
 ```
 FILESYSTEM_DISK=s3
 AWS_ACCESS_KEY_ID=your-access-key
@@ -150,6 +166,25 @@ AWS_DEFAULT_REGION=us-east-1
 AWS_BUCKET=your-bucket-name
 AWS_URL=https://your-bucket.s3.amazonaws.com
 ```
+
+**Cloudflare R2 (Free Tier Available):**
+```
+FILESYSTEM_DISK=s3
+AWS_ACCESS_KEY_ID=your-r2-access-key
+AWS_SECRET_ACCESS_KEY=your-r2-secret-key
+AWS_DEFAULT_REGION=auto
+AWS_BUCKET=your-r2-bucket
+AWS_ENDPOINT=https://<accountid>.r2.cloudflarestorage.com
+AWS_URL=https://your-r2-bucket.r2.dev
+AWS_USE_PATH_STYLE_ENDPOINT=true
+```
+
+#### Option 3: Re-upload in Production (Temporary Solution)
+For now, upload carousel images directly in the Railway production environment:
+1. Login to Railway app as admin
+2. Go to Admin → Homepage → Carousel
+3. Upload carousel images
+4. Images will be stored in Railway storage
 
 ### 8. Post-Deployment Commands
 After successful deployment, run these in Railway Console:
