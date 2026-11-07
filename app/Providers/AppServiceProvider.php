@@ -21,7 +21,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Parse DATABASE_URL from Railway and set individual env vars
+        // Parse DATABASE_URL from Railway and configure database connection
         if ($databaseUrl = env('DATABASE_URL')) {
             $url = parse_url($databaseUrl);
 
@@ -29,22 +29,15 @@ class AppServiceProvider extends ServiceProvider
                 // Determine database type from scheme
                 $scheme = $url['scheme'] ?? 'mysql';
 
-                // Set individual database configuration
-                if ($scheme === 'mysql' || $scheme === 'mariadb') {
-                    putenv('DB_CONNECTION=mysql');
-                    putenv('DB_HOST=' . ($url['host'] ?? '127.0.0.1'));
-                    putenv('DB_PORT=' . ($url['port'] ?? '3306'));
-                    putenv('DB_DATABASE=' . ltrim($url['path'] ?? 'laravel', '/'));
-                    putenv('DB_USERNAME=' . ($url['user'] ?? 'root'));
-                    putenv('DB_PASSWORD=' . ($url['pass'] ?? ''));
-                } elseif ($scheme === 'postgresql' || $scheme === 'postgres') {
-                    putenv('DB_CONNECTION=pgsql');
-                    putenv('DB_HOST=' . ($url['host'] ?? '127.0.0.1'));
-                    putenv('DB_PORT=' . ($url['port'] ?? '5432'));
-                    putenv('DB_DATABASE=' . ltrim($url['path'] ?? 'laravel', '/'));
-                    putenv('DB_USERNAME=' . ($url['user'] ?? 'root'));
-                    putenv('DB_PASSWORD=' . ($url['pass'] ?? ''));
-                }
+                // Configure database connection directly
+                config([
+                    'database.default' => $scheme === 'postgresql' || $scheme === 'postgres' ? 'pgsql' : 'mysql',
+                    'database.connections.' . ($scheme === 'postgresql' || $scheme === 'postgres' ? 'pgsql' : 'mysql') . '.host' => $url['host'] ?? '127.0.0.1',
+                    'database.connections.' . ($scheme === 'postgresql' || $scheme === 'postgres' ? 'pgsql' : 'mysql') . '.port' => $url['port'] ?? ($scheme === 'postgresql' || $scheme === 'postgres' ? '5432' : '3306'),
+                    'database.connections.' . ($scheme === 'postgresql' || $scheme === 'postgres' ? 'pgsql' : 'mysql') . '.database' => ltrim($url['path'] ?? 'laravel', '/'),
+                    'database.connections.' . ($scheme === 'postgresql' || $scheme === 'postgres' ? 'pgsql' : 'mysql') . '.username' => $url['user'] ?? 'root',
+                    'database.connections.' . ($scheme === 'postgresql' || $scheme === 'postgres' ? 'pgsql' : 'mysql') . '.password' => $url['pass'] ?? '',
+                ]);
             }
         }
     }
