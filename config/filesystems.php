@@ -32,7 +32,7 @@ return [
 
         'local' => [
             'driver' => 'local',
-            'root' => storage_path('app/private'),
+            'root' => env('STORAGE_PATH', storage_path('app/private')),
             'serve' => true,
             'throw' => false,
             'report' => false,
@@ -40,7 +40,7 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
+            'root' => env('STORAGE_PATH', storage_path('app/public')),
             'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
             'visibility' => 'public',
             'throw' => false,
@@ -49,7 +49,7 @@ return [
 
         'railway-volumes' => [
             'driver' => 'local',
-            'root' => env('RAILWAY_VOLUME_MOUNT_PATH', '/var/www/html/storage/app'),
+            'root' => env('RAILWAY_VOLUME_MOUNT_PATH', '/app/storage/app'),
             'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
             'visibility' => 'public',
             'throw' => false,
@@ -83,7 +83,7 @@ return [
     */
 
     'links' => [
-        public_path('storage') => storage_path('app/public'),
+        public_path('storage') => env('RAILWAY_VOLUME_MOUNT_PATH', storage_path('app/public')),
     ],
 
 ];

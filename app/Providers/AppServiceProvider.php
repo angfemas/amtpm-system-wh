@@ -21,6 +21,29 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Configure Railway Volumes storage path
+        // Railway Nixpacks apps live under /app, so storage path should be /app/storage/app
+        if (env('RAILWAY_ENVIRONMENT')) {
+            $storagePath = env('RAILWAY_VOLUME_MOUNT_PATH', '/app/storage/app');
+
+            // Override storage path for Railway environment
+            // This ensures all disk configurations use the correct path
+            config([
+                'filesystems.disks.public.root' => $storagePath,
+                'filesystems.disks.local.root' => $storagePath,
+                'filesystems.links' => [
+                    public_path('storage') => $storagePath,
+                ],
+            ]);
+
+            // Set STORAGE_PATH environment variable for config/filesystems.php
+            // This allows the filesystems config to use the correct path
+            if (!env('STORAGE_PATH')) {
+                $_ENV['STORAGE_PATH'] = $storagePath;
+                $_SERVER['STORAGE_PATH'] = $storagePath;
+            }
+        }
+
         // Configure database connection from Railway MySQL service
         // Priority: DB_* variables > MYSQL_* variables > DATABASE_URL
         if (env('DB_HOST') && env('DB_DATABASE')) {
