@@ -10,6 +10,22 @@
                     <p class="text-gray-600 text-sm mt-1">Update logo configuration</p>
                 </div>
 
+                @if($errors->any())
+                    <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <ul class="list-disc list-inside text-sm text-red-700 space-y-1">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                @if(session('success'))
+                    <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
                 <form action="{{ route('admin.system.logo.update', $logo) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
@@ -79,7 +95,7 @@
 
                         <!-- Active Status -->
                         <div class="flex items-center">
-                            <input type="checkbox" name="is_active" id="is_active"
+                            <input type="checkbox" name="is_active" id="is_active" value="1"
                                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                                    {{ $logo->is_active ? 'checked' : '' }}>
                             <label for="is_active" class="ml-2 text-sm text-gray-700">Active</label>

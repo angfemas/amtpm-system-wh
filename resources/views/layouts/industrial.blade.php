@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <x-favicon />
 
     <title>{{ config('app.name', 'Warehouse AMTPM System') }}</title>
 
@@ -34,9 +35,14 @@
             <!-- Logo Section -->
             <div class="h-16 flex items-center justify-between px-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-red-600 to-red-700 rounded-lg flex items-center justify-center shadow-md">
-                        <i class="bi bi-gear-fill text-white text-lg"></i>
-                    </div>
+                    @php $sidebarLogo = \App\Models\AppLogo::getActiveLogo('default'); @endphp
+                    @if($sidebarLogo && $sidebarLogo->image_path)
+                        <img src="{{ $sidebarLogo->image_url }}" alt="{{ $sidebarLogo->alt_text ?? config('app.name') }}" class="w-10 h-10 object-contain">
+                    @else
+                        <div class="w-10 h-10 bg-gradient-to-br from-red-600 to-red-700 rounded-lg flex items-center justify-center shadow-md">
+                            <i class="bi bi-gear-fill text-white text-lg"></i>
+                        </div>
+                    @endif
                     <div>
                         <span class="font-bold text-xl text-gray-800">AMTPM</span>
                         <p class="text-xs text-gray-500">Warehouse System</p>

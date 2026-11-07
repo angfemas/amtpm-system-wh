@@ -7,6 +7,7 @@ use App\Models\AppLogo;
 use App\Models\User;
 use App\Services\ImageCompressionService;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -447,16 +448,15 @@ class SystemAdminController extends Controller
             'alt_text' => $validated['alt_text'] ?? null,
             'width' => $validated['width'] ?? null,
             'height' => $validated['height'] ?? null,
-            'is_active' => $validated['is_active'] ?? true,
+            'is_active' => $request->boolean('is_active'),
         ];
 
         if ($request->hasFile('image_path')) {
-            $imagePath = $this->imageCompression->compressAndStore(
-                $request->file('image_path'),
-                'logos',
-                'public'
-            );
-            $data['image_path'] = $imagePath;
+            $data['image_path'] = $this->storeLogoImage($request->file('image_path'));
+        }
+
+        if ($data['is_active']) {
+            AppLogo::byType($data['logo_type'])->active()->update(['is_active' => false]);
         }
 
         AppLogo::create($data);
@@ -488,7 +488,7 @@ class SystemAdminController extends Controller
             'alt_text' => $validated['alt_text'] ?? $logo->alt_text,
             'width' => $validated['width'] ?? $logo->width,
             'height' => $validated['height'] ?? $logo->height,
-            'is_active' => $validated['is_active'] ?? $logo->is_active,
+            'is_active' => $request->boolean('is_active'),
         ];
 
         if ($request->hasFile('image_path')) {
@@ -496,12 +496,11 @@ class SystemAdminController extends Controller
                 Storage::disk('public')->delete($logo->image_path);
             }
 
-            $imagePath = $this->imageCompression->compressAndStore(
-                $request->file('image_path'),
-                'logos',
-                'public'
-            );
-            $data['image_path'] = $imagePath;
+            $data['image_path'] = $this->storeLogoImage($request->file('image_path'));
+        }
+
+        if ($data['is_active']) {
+            AppLogo::byType($data['logo_type'])->active()->where('id', '!=', $logo->id)->update(['is_active' => false]);
         }
 
         $logo->update($data);
@@ -524,5 +523,23 @@ class SystemAdminController extends Controller
 
         return redirect()->route('admin.system.logo.index')
             ->with('success', 'Logo deleted successfully.');
+    }
+
+    /**
+     * Store logo image, falling back to the original file when compression fails
+     * (e.g. SVG or other formats the image driver cannot process).
+     */
+    private function storeLogoImage(UploadedFile $file): string
+    {
+        try {
+            return $this->imageCompression->compressAndStore($file, 'logos', 'public');
+        } catch (\Throwable $e) {
+            Log::warning('Logo compression failed, storing original file', [
+                'error' => $e->getMessage(),
+                'file' => $file->getClientOriginalName(),
+            ]);
+
+            return $file->store('logos', 'public');
+        }
     }
 }

@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <x-favicon />
     <title>{{ config('app.name', 'Warehouse AMTPM System') }}</title>
     <meta name="description" content="Warehouse AMTPM System — Autonomous Maintenance Total Productive Maintenance untuk operasional gudang yang efisien.">
 
@@ -1058,7 +1059,12 @@
     <header class="site-header">
         <div class="header-inner">
             <a href="{{ url('/') }}" class="brand">
-                <span class="brand-mark"><i class="bi bi-gear-fill"></i></span>
+                @php $landingLogo = \App\Models\AppLogo::getActiveLogo('default'); @endphp
+                @if($landingLogo && $landingLogo->image_path)
+                    <img src="{{ $landingLogo->image_url }}" alt="{{ $landingLogo->alt_text ?? config('app.name') }}" style="width: 44px; height: 44px; object-fit: contain;">
+                @else
+                    <span class="brand-mark"><i class="bi bi-gear-fill"></i></span>
+                @endif
                 <span>
                     AMTPM
                     <small>Warehouse System</small>
@@ -1149,6 +1155,7 @@
     </section>
 
     <div id="hero-spacer" style="height: 50vh;"></div>
+   
 
     <section class="section scroll-section" id="stats">
         <div class="section-bg" style="background: #0a0a0a;"></div>

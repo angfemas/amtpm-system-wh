@@ -48,4 +48,12 @@ class AppLogo extends Model
     {
         return static::active()->byType($type)->first();
     }
+
+    /**
+     * Get active logo URL by type
+     */
+    public static function getActiveLogoUrl(string $type = 'default'): ?string
+    {
+        return static::getActiveLogo($type)?->image_url;
+    }
 }

@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <x-favicon />
     <title>Register - Warehouse AMTPM System</title>
     
     <!-- Fonts -->
@@ -297,9 +298,14 @@
         <div class="register-card">
             <!-- Logo Section -->
             <div class="logo-section">
-                <div class="logo-icon">
-                    <i class="bi bi-person-plus-fill"></i>
-                </div>
+                @php $authLogo = \App\Models\AppLogo::getActiveLogo('default'); @endphp
+                @if($authLogo && $authLogo->image_path)
+                    <img src="{{ $authLogo->image_url }}" alt="{{ $authLogo->alt_text ?? config('app.name') }}" style="display: block; width: 80px; height: 80px; object-fit: contain; margin: 0 auto 1.5rem;">
+                @else
+                    <div class="logo-icon">
+                        <i class="bi bi-person-plus-fill"></i>
+                    </div>
+                @endif
                 <h1 class="card-title">{{ trans('messages.create_account') }}</h1>
                 <p class="card-subtitle">{{ trans('messages.join_system') }}</p>
             </div>
