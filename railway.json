@@ -4,7 +4,7 @@
     "builder": "NIXPACKS",
     "buildCommand": "composer install --no-dev --optimize-autoloader && npm install && npm run build",
     "buildEnv": {
-      "NODE_VERSION": "20"
+      "NIXPACKS_NODE_VERSION": "20"
     },
     "watchPatterns": [
       "**"
