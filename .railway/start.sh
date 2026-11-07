@@ -10,19 +10,18 @@ fi
 # Run migrations
 php artisan migrate --force
 
-# Create storage link
-php artisan storage:link
+# Create storage link (force recreate to ensure it exists)
+php artisan storage:link --force
 
-# Clear and cache configs
+# Clear all caches
 php artisan config:clear
-php artisan config:cache
-
-# Clear and cache routes
 php artisan route:clear
-php artisan route:cache
-
-# Clear and cache views
 php artisan view:clear
+php artisan cache:clear
+
+# Cache for production
+php artisan config:cache
+php artisan route:cache
 php artisan view:cache
 
 # Start the application
