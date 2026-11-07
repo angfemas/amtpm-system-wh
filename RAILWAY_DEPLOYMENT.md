@@ -40,6 +40,18 @@ AMTPM_DEFAULT_ROLE=operator
 #### Database Configuration
 Railway automatically provides `DATABASE_URL` from the database service. The app will automatically parse this URL and configure database connection.
 
+**IMPORTANT:**
+- DO NOT manually set `DB_CONNECTION` in Railway Variables
+- DO NOT manually set `DATABASE_URL` in Railway Variables
+- Railway will automatically inject `DATABASE_URL` when you link a database service
+- The AppServiceProvider will parse `DATABASE_URL` and configure the database connection
+
+**Steps:**
+1. Add a Database service (MySQL or PostgreSQL) in Railway
+2. Railway will automatically link it to your web service
+3. Railway will automatically inject `DATABASE_URL` environment variable
+4. Do NOT modify or delete the auto-generated `DATABASE_URL`
+
 #### Optional Variables
 ```
 # Google OAuth
