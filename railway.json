@@ -5,7 +5,7 @@
     "buildCommand": "composer install --no-dev --optimize-autoloader && npm ci && npm run build",
     "buildEnv": {
       "NIXPACKS_NODE_VERSION": "20",
-      "ASSET_URL": "https://web-production-18a563.up.railway.app"
+      "ASSET_URL": "https://amtpm-warehouse.up.railway.app"
     },
     "watchPatterns": [
       "**"
